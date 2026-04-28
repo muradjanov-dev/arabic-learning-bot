@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -122,7 +123,10 @@ async def main() -> None:
     if not settings.BOT_TOKEN:
         raise ValueError("BOT_TOKEN is not set. Check your .env file.")
 
-    bot = Bot(token=settings.BOT_TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(
+        token=settings.BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
     dp = build_dispatcher()
 
     scheduler = setup_scheduler(bot, async_session_maker)
