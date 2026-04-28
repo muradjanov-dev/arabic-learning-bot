@@ -1,0 +1,155 @@
+import asyncio
+import logging
+import os
+from datetime import datetime
+from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
+
+from bot.config import settings
+from bot.database.base import engine, async_session_maker
+from bot.database.models import Base
+from bot.middlewares.db_session import DbSessionMiddleware
+from bot.middlewares.user_check import UserCheckMiddleware
+from bot.handlers import start, lesson, profile, admin, subscription
+from bot.services.scheduler import setup_scheduler
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+
+def _get_storage():
+    try:
+        from aiogram.fsm.storage.redis import RedisStorage
+        storage = RedisStorage.from_url(settings.REDIS_URL)
+        logger.info("Using Redis FSM storage")
+        return storage
+    except Exception as e:
+        logger.warning(f"Redis unavailable ({e}), using MemoryStorage")
+        return MemoryStorage()
+
+
+async def _notify_admins_startup(bot: Bot) -> None:
+    """Send a deployment notification to all admins after startup."""
+    deploy_id = os.getenv("RAILWAY_DEPLOYMENT_ID", "local")[:8]
+    commit = os.getenv("RAILWAY_GIT_COMMIT_SHA", "unknown")[:7]
+    env = os.getenv("RAILWAY_ENVIRONMENT_NAME", "local")
+    mode = "Webhook" if settings.WEBHOOK_URL else "Polling"
+    text = (
+        "🚀 <b>Bot ishga tushdi!</b>\n\n"
+        f"🕐 Vaqt: <code>{datetime.utcnow().strftime('%d.%m.%Y %H:%M')} UTC</code>\n"
+        f"🌿 Muhit: <code>{env}</code>\n"
+        f"📦 Deploy: <code>{deploy_id}</code>\n"
+        f"🔖 Commit: <code>{commit}</code>\n"
+        f"🔄 Rejim: <code>{mode}</code>\n\n"
+        "Yangilanish muvaffaqiyatli o'rnatildi. ✅"
+    )
+    for admin_id in settings.ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, text)
+        except Exception as e:
+            logger.warning(f"Could not notify admin {admin_id} of startup: {e}")
+
+
+async def _auto_seed_vocabulary() -> None:
+    """Populate vocabulary on first startup if table is empty."""
+    from sqlalchemy import select, func
+    from bot.database.models import Vocabulary
+    from scripts.seed_data import VOCABULARY
+
+    async with async_session_maker() as session:
+        count = (await session.execute(select(func.count(Vocabulary.word_id)))).scalar() or 0
+        if count > 0:
+            logger.info(f"Vocabulary already populated ({count} words).")
+            return
+        for item in VOCABULARY:
+            session.add(Vocabulary(**item))
+        await session.commit()
+        logger.info(f"Auto-seeded {len(VOCABULARY)} vocabulary words.")
+
+
+async def on_startup(bot: Bot) -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables ensured.")
+
+    try:
+        await _auto_seed_vocabulary()
+    except Exception as e:
+        logger.error(f"Auto-seed failed: {e}")
+
+    if settings.WEBHOOK_URL:
+        webhook_url = f"{settings.WEBHOOK_URL.rstrip('/')}{settings.WEBHOOK_PATH}"
+        await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+        logger.info(f"Webhook set: {webhook_url}")
+
+    # Notify admins about successful (re)deployment
+    await _notify_admins_startup(bot)
+
+
+async def on_shutdown(bot: Bot) -> None:
+    if settings.WEBHOOK_URL:
+        await bot.delete_webhook()
+    await engine.dispose()
+    logger.info("Bot shutdown.")
+
+
+def build_dispatcher() -> Dispatcher:
+    dp = Dispatcher(storage=_get_storage())
+
+    dp.message.middleware(DbSessionMiddleware(async_session_maker))
+    dp.callback_query.middleware(DbSessionMiddleware(async_session_maker))
+    dp.message.middleware(UserCheckMiddleware())
+    dp.callback_query.middleware(UserCheckMiddleware())
+
+    dp.include_router(start.router)
+    dp.include_router(admin.router)
+    dp.include_router(lesson.router)
+    dp.include_router(profile.router)
+    dp.include_router(subscription.router)
+
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
+    return dp
+
+
+async def main() -> None:
+    if not settings.BOT_TOKEN:
+        raise ValueError("BOT_TOKEN is not set. Check your .env file.")
+
+    bot = Bot(token=settings.BOT_TOKEN, parse_mode=ParseMode.HTML)
+    dp = build_dispatcher()
+
+    scheduler = setup_scheduler(bot, async_session_maker)
+    scheduler.start()
+    logger.info("Scheduler started.")
+
+    try:
+        if settings.WEBHOOK_URL:
+            app = web.Application()
+            handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+            handler.register(app, path=settings.WEBHOOK_PATH)
+            setup_application(app, dp, bot=bot)
+
+            runner = web.AppRunner(app)
+            await runner.setup()
+            site = web.TCPSite(runner, settings.WEB_SERVER_HOST, settings.WEB_SERVER_PORT)
+            await site.start()
+            logger.info(f"Webhook server on {settings.WEB_SERVER_HOST}:{settings.WEB_SERVER_PORT}")
+            await asyncio.Event().wait()
+        else:
+            logger.info("Starting polling...")
+            await bot.delete_webhook(drop_pending_updates=True)
+            await dp.start_polling(bot)
+    finally:
+        scheduler.shutdown(wait=False)
+        await bot.session.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
