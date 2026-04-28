@@ -5,6 +5,8 @@ load_dotenv()
 
 
 def _fix_db_url(url: str) -> str:
+    # Strip whitespace/newlines that can creep in via env var injection
+    url = url.strip().replace("\n", "").replace("\r", "")
     if url.startswith("postgres://"):
         return url.replace("postgres://", "postgresql+asyncpg://", 1)
     if url.startswith("postgresql://") and "+asyncpg" not in url:
