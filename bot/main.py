@@ -64,16 +64,26 @@ async def _notify_admins_startup(bot: Bot) -> None:
 
 
 async def _auto_seed_vocabulary() -> None:
-    """Populate vocabulary on first startup if table is empty."""
-    from sqlalchemy import select, func
+    """Populate vocabulary; wipe and re-seed if old religious content is detected."""
+    from sqlalchemy import select, func, delete
     from bot.database.models import Vocabulary
-    from scripts.seed_data import VOCABULARY
+    from scripts.seed_data import VOCABULARY, RELIGIOUS_CATEGORIES, RELIGIOUS_WORDS
 
     async with async_session_maker() as session:
         count = (await session.execute(select(func.count(Vocabulary.word_id)))).scalar() or 0
         if count > 0:
-            logger.info(f"Vocabulary already populated ({count} words).")
-            return
+            sample = (await session.execute(select(Vocabulary).limit(20))).scalars().all()
+            has_religious = any(
+                (w.category in RELIGIOUS_CATEGORIES or w.arabic_word in RELIGIOUS_WORDS)
+                for w in sample
+            )
+            if has_religious:
+                await session.execute(delete(Vocabulary))
+                await session.commit()
+                logger.info("Wiped old religious vocabulary — re-seeding with clean content.")
+            else:
+                logger.info(f"Vocabulary already populated ({count} words).")
+                return
         for item in VOCABULARY:
             session.add(Vocabulary(**item))
         await session.commit()
@@ -101,6 +111,15 @@ async def on_startup(bot: Bot) -> None:
         await _auto_seed_vocabulary()
     except Exception as e:
         logger.error(f"Auto-seed failed: {e}")
+
+    # Register bot commands visible in Telegram menu
+    from aiogram.types import BotCommand
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Bosh menyu"),
+        BotCommand(command="profile", description="Mening sahifam"),
+        BotCommand(command="lesson", description="Dars boshlash"),
+        BotCommand(command="subscription", description="Obuna va Premium"),
+    ])
 
     if settings.WEBHOOK_URL:
         webhook_url = f"{settings.WEBHOOK_URL.rstrip('/')}{settings.WEBHOOK_PATH}"

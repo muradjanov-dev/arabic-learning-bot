@@ -1,6 +1,6 @@
 """
-Run this script once after deployment to populate the vocabulary database.
-Usage: python -m scripts.seed_data
+Vocabulary seed — pure Arabic language (Mabdaul Qiroat + Shifohiya).
+No religious content.
 """
 import asyncio
 import sys
@@ -12,148 +12,191 @@ from bot.database.models import Base, Vocabulary
 from sqlalchemy import select
 
 VOCABULARY = [
-    # ─── Level 1: Gate of Sounds — Alphabet & Harakats ───────────────────────
-    {"level_id": 1, "arabic_word": "أَ", "uzbek_translation": "A (fatha)", "transliteration": "a", "category": "harakat"},
-    {"level_id": 1, "arabic_word": "إِ", "uzbek_translation": "I (kasra)", "transliteration": "i", "category": "harakat"},
-    {"level_id": 1, "arabic_word": "أُ", "uzbek_translation": "U (damma)", "transliteration": "u", "category": "harakat"},
-    {"level_id": 1, "arabic_word": "بَ", "uzbek_translation": "Ba (bo'", "transliteration": "ba", "category": "harf"},
-    {"level_id": 1, "arabic_word": "تَ", "uzbek_translation": "Ta (to')", "transliteration": "ta", "category": "harf"},
-    {"level_id": 1, "arabic_word": "ثَ", "uzbek_translation": "Sa (so')", "transliteration": "sa", "category": "harf"},
-    {"level_id": 1, "arabic_word": "نُورٌ", "uzbek_translation": "Nur (yorug'lik)", "transliteration": "nuur", "category": "soʻz"},
-    {"level_id": 1, "arabic_word": "بَابٌ", "uzbek_translation": "Eshik", "transliteration": "baab", "category": "soʻz",
-     "example_sentence_arabic": "هَذَا بَابٌ", "example_sentence_uzbek": "Bu eshik"},
-    {"level_id": 1, "arabic_word": "كِتَابٌ", "uzbek_translation": "Kitob", "transliteration": "kitaab", "category": "soʻz",
-     "example_sentence_arabic": "هَذَا كِتَابٌ", "example_sentence_uzbek": "Bu kitob"},
-    {"level_id": 1, "arabic_word": "قَلَمٌ", "uzbek_translation": "Qalam", "transliteration": "qalam", "category": "soʻz",
-     "example_sentence_arabic": "هَذَا قَلَمٌ", "example_sentence_uzbek": "Bu qalam"},
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 1 — Alifbo (1): ا ب ت ث ج ح خ
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 1, "arabic_word": "ا", "uzbek_translation": "Alif", "transliteration": "alif", "category": "harf"},
+    {"level_id": 1, "arabic_word": "ب", "uzbek_translation": "Ba", "transliteration": "ba", "category": "harf"},
+    {"level_id": 1, "arabic_word": "ت", "uzbek_translation": "Ta", "transliteration": "ta", "category": "harf"},
+    {"level_id": 1, "arabic_word": "ث", "uzbek_translation": "Sa", "transliteration": "sa", "category": "harf"},
+    {"level_id": 1, "arabic_word": "ج", "uzbek_translation": "Jim", "transliteration": "jim", "category": "harf"},
+    {"level_id": 1, "arabic_word": "ح", "uzbek_translation": "Ha", "transliteration": "ha", "category": "harf"},
+    {"level_id": 1, "arabic_word": "خ", "uzbek_translation": "Xa", "transliteration": "kha", "category": "harf"},
+    {"level_id": 1, "arabic_word": "بَابٌ", "uzbek_translation": "Eshik", "transliteration": "baab", "category": "soz",
+     "example_sentence_arabic": "هَذَا بَابٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta eshik"},
+    {"level_id": 1, "arabic_word": "تَمْرٌ", "uzbek_translation": "Xurmo", "transliteration": "tamr", "category": "soz"},
+    {"level_id": 1, "arabic_word": "جَبَلٌ", "uzbek_translation": "Tog'", "transliteration": "jabal", "category": "soz"},
 
-    # ─── Level 2: Gate of Sounds — Basic Words ───────────────────────────────
-    {"level_id": 2, "arabic_word": "بَيْتٌ", "uzbek_translation": "Uy", "transliteration": "bayt", "category": "uy",
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 2 — Alifbo (2): د ذ ر ز س ش ص
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 2, "arabic_word": "د", "uzbek_translation": "Dal", "transliteration": "dal", "category": "harf"},
+    {"level_id": 2, "arabic_word": "ذ", "uzbek_translation": "Zal", "transliteration": "zal", "category": "harf"},
+    {"level_id": 2, "arabic_word": "ر", "uzbek_translation": "Ra", "transliteration": "ra", "category": "harf"},
+    {"level_id": 2, "arabic_word": "ز", "uzbek_translation": "Zay", "transliteration": "zay", "category": "harf"},
+    {"level_id": 2, "arabic_word": "س", "uzbek_translation": "Sin", "transliteration": "sin", "category": "harf"},
+    {"level_id": 2, "arabic_word": "ش", "uzbek_translation": "Shin", "transliteration": "shin", "category": "harf"},
+    {"level_id": 2, "arabic_word": "ص", "uzbek_translation": "Sod", "transliteration": "sad", "category": "harf"},
+    {"level_id": 2, "arabic_word": "دَارٌ", "uzbek_translation": "Uy", "transliteration": "daar", "category": "soz",
+     "example_sentence_arabic": "هَذِهِ دَارٌ", "example_sentence_uzbek": "Bu uy"},
+    {"level_id": 2, "arabic_word": "رَأْسٌ", "uzbek_translation": "Bosh", "transliteration": "ra's", "category": "soz"},
+    {"level_id": 2, "arabic_word": "سَمَكٌ", "uzbek_translation": "Baliq", "transliteration": "samak", "category": "soz"},
+
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 3 — Alifbo (3): ض ط ظ ع غ ف ق
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 3, "arabic_word": "ض", "uzbek_translation": "Zod", "transliteration": "dad", "category": "harf"},
+    {"level_id": 3, "arabic_word": "ط", "uzbek_translation": "To", "transliteration": "ta", "category": "harf"},
+    {"level_id": 3, "arabic_word": "ظ", "uzbek_translation": "Zo", "transliteration": "za", "category": "harf"},
+    {"level_id": 3, "arabic_word": "ع", "uzbek_translation": "Ayn", "transliteration": "ain", "category": "harf"},
+    {"level_id": 3, "arabic_word": "غ", "uzbek_translation": "G'ayn", "transliteration": "ghain", "category": "harf"},
+    {"level_id": 3, "arabic_word": "ف", "uzbek_translation": "Fa", "transliteration": "fa", "category": "harf"},
+    {"level_id": 3, "arabic_word": "ق", "uzbek_translation": "Qof", "transliteration": "qaf", "category": "harf"},
+    {"level_id": 3, "arabic_word": "طَيْرٌ", "uzbek_translation": "Qush", "transliteration": "tayr", "category": "soz"},
+    {"level_id": 3, "arabic_word": "عَيْنٌ", "uzbek_translation": "Ko'z", "transliteration": "ayn", "category": "soz"},
+    {"level_id": 3, "arabic_word": "قَمَرٌ", "uzbek_translation": "Oy", "transliteration": "qamar", "category": "soz"},
+
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 4 — Alifbo (4): ك ل م ن و ه ي
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 4, "arabic_word": "ك", "uzbek_translation": "Kof", "transliteration": "kaf", "category": "harf"},
+    {"level_id": 4, "arabic_word": "ل", "uzbek_translation": "Lom", "transliteration": "lam", "category": "harf"},
+    {"level_id": 4, "arabic_word": "م", "uzbek_translation": "Mim", "transliteration": "mim", "category": "harf"},
+    {"level_id": 4, "arabic_word": "ن", "uzbek_translation": "Nun", "transliteration": "nun", "category": "harf"},
+    {"level_id": 4, "arabic_word": "و", "uzbek_translation": "Vov", "transliteration": "waw", "category": "harf"},
+    {"level_id": 4, "arabic_word": "ه", "uzbek_translation": "Ha (oxirgi)", "transliteration": "ha", "category": "harf"},
+    {"level_id": 4, "arabic_word": "ي", "uzbek_translation": "Ya", "transliteration": "ya", "category": "harf"},
+    {"level_id": 4, "arabic_word": "كَلْبٌ", "uzbek_translation": "It", "transliteration": "kalb", "category": "soz"},
+    {"level_id": 4, "arabic_word": "لَيْلٌ", "uzbek_translation": "Kecha", "transliteration": "layl", "category": "soz"},
+    {"level_id": 4, "arabic_word": "نَهْرٌ", "uzbek_translation": "Daryo", "transliteration": "nahr", "category": "soz"},
+
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 5 — Harakatlar (unli belgilari)
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 5, "arabic_word": "َ", "uzbek_translation": "Fatha (a)", "transliteration": "fatha", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ِ", "uzbek_translation": "Kasra (i)", "transliteration": "kasra", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ُ", "uzbek_translation": "Damma (u)", "transliteration": "damma", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ْ", "uzbek_translation": "Sukun (sokin)", "transliteration": "sukun", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ً", "uzbek_translation": "Tanvin fatha (an)", "transliteration": "tanwin fatha", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ٍ", "uzbek_translation": "Tanvin kasra (in)", "transliteration": "tanwin kasra", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ٌ", "uzbek_translation": "Tanvin damma (un)", "transliteration": "tanwin damma", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "ّ", "uzbek_translation": "Shadda (ikkilanish)", "transliteration": "shadda", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بَا", "uzbek_translation": "Ba + uzun a (madd alif)", "transliteration": "baa", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بِي", "uzbek_translation": "Bi + uzun i (madd ya)", "transliteration": "bii", "category": "harakat"},
+
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 6 — Mabdaul Qiroat: Oddiy so'zlar (1)
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 6, "arabic_word": "كِتَابٌ", "uzbek_translation": "Kitob", "transliteration": "kitaab", "category": "soz",
+     "example_sentence_arabic": "هَذَا كِتَابٌ جَدِيدٌ", "example_sentence_uzbek": "Bu yangi kitob"},
+    {"level_id": 6, "arabic_word": "قَلَمٌ", "uzbek_translation": "Qalam", "transliteration": "qalam", "category": "soz",
+     "example_sentence_arabic": "هَذَا قَلَمٌ أَحْمَرُ", "example_sentence_uzbek": "Bu qizil qalam"},
+    {"level_id": 6, "arabic_word": "بَيْتٌ", "uzbek_translation": "Uy", "transliteration": "bayt", "category": "soz",
      "example_sentence_arabic": "هَذَا بَيْتٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta uy"},
-    {"level_id": 2, "arabic_word": "مَسْجِدٌ", "uzbek_translation": "Masjid", "transliteration": "masjid", "category": "joy"},
-    {"level_id": 2, "arabic_word": "مَدْرَسَةٌ", "uzbek_translation": "Maktab", "transliteration": "madrasa", "category": "joy"},
-    {"level_id": 2, "arabic_word": "طَالِبٌ", "uzbek_translation": "Talaba", "transliteration": "taalib", "category": "odam"},
-    {"level_id": 2, "arabic_word": "مُعَلِّمٌ", "uzbek_translation": "O'qituvchi", "transliteration": "mu'allim", "category": "odam"},
-    {"level_id": 2, "arabic_word": "هَذَا", "uzbek_translation": "Bu (erkak)", "transliteration": "haazaa", "category": "ko'rsatish"},
-    {"level_id": 2, "arabic_word": "هَذِهِ", "uzbek_translation": "Bu (ayol)", "transliteration": "haazihi", "category": "ko'rsatish"},
-    {"level_id": 2, "arabic_word": "ذَلِكَ", "uzbek_translation": "U (erkak)", "transliteration": "zaalika", "category": "ko'rsatish"},
-    {"level_id": 2, "arabic_word": "كَبِيرٌ", "uzbek_translation": "Katta", "transliteration": "kabiir", "category": "sifat"},
-    {"level_id": 2, "arabic_word": "صَغِيرٌ", "uzbek_translation": "Kichik", "transliteration": "saghiir", "category": "sifat"},
+    {"level_id": 6, "arabic_word": "شَجَرَةٌ", "uzbek_translation": "Daraxt", "transliteration": "shajara", "category": "soz"},
+    {"level_id": 6, "arabic_word": "سَمَاءٌ", "uzbek_translation": "Osmon", "transliteration": "samaa", "category": "soz"},
+    {"level_id": 6, "arabic_word": "أَرْضٌ", "uzbek_translation": "Er / Zamin", "transliteration": "ard", "category": "soz"},
+    {"level_id": 6, "arabic_word": "مَاءٌ", "uzbek_translation": "Suv", "transliteration": "maa", "category": "soz"},
+    {"level_id": 6, "arabic_word": "نَارٌ", "uzbek_translation": "Olov", "transliteration": "naar", "category": "soz"},
+    {"level_id": 6, "arabic_word": "شَمْسٌ", "uzbek_translation": "Quyosh", "transliteration": "shams", "category": "soz"},
+    {"level_id": 6, "arabic_word": "قِطٌّ", "uzbek_translation": "Mushuk", "transliteration": "qitt", "category": "soz"},
 
-    # ─── Level 3: Valley of Identity — Pronouns & Gender ─────────────────────
-    {"level_id": 3, "arabic_word": "أَنَا", "uzbek_translation": "Men", "transliteration": "ana", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "أَنْتَ", "uzbek_translation": "Sen (erkak)", "transliteration": "anta", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "أَنْتِ", "uzbek_translation": "Sen (ayol)", "transliteration": "anti", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "هُوَ", "uzbek_translation": "U (erkak)", "transliteration": "huwa", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "هِيَ", "uzbek_translation": "U (ayol)", "transliteration": "hiya", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "نَحْنُ", "uzbek_translation": "Biz", "transliteration": "nahnu", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "أَنْتُمْ", "uzbek_translation": "Sizlar (erkak)", "transliteration": "antum", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "هُمْ", "uzbek_translation": "Ular (erkak)", "transliteration": "hum", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "هُنَّ", "uzbek_translation": "Ular (ayol)", "transliteration": "hunna", "category": "zamir"},
-    {"level_id": 3, "arabic_word": "مَنْ", "uzbek_translation": "Kim?", "transliteration": "man", "category": "savol"},
-    {"level_id": 3, "arabic_word": "مَا", "uzbek_translation": "Nima?", "transliteration": "maa", "category": "savol"},
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 7 — Mabdaul Qiroat: Oddiy so'zlar (2) + Salomlashish
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 7, "arabic_word": "مَرْحَبًا", "uzbek_translation": "Salom / Xush kelibsiz", "transliteration": "marhaban", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "أَهْلًا", "uzbek_translation": "Ahlan", "transliteration": "ahlan", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "صَبَاحُ الْخَيْرِ", "uzbek_translation": "Xayrli tong", "transliteration": "sabaah al-khayr", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "مَسَاءُ الْخَيْرِ", "uzbek_translation": "Xayrli kech", "transliteration": "masaa al-khayr", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "شُكْرًا", "uzbek_translation": "Rahmat", "transliteration": "shukran", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "عَفْوًا", "uzbek_translation": "Iltimos / Marhamat", "transliteration": "afwan", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "مَعَ السَّلَامَةِ", "uzbek_translation": "Xayr / Ko'rishguncha", "transliteration": "maa as-salaama", "category": "salomlashish"},
+    {"level_id": 7, "arabic_word": "أُسْرَةٌ", "uzbek_translation": "Oila", "transliteration": "usra", "category": "soz"},
+    {"level_id": 7, "arabic_word": "وَلَدٌ", "uzbek_translation": "Bola (o'g'il)", "transliteration": "walad", "category": "soz"},
+    {"level_id": 7, "arabic_word": "بِنْتٌ", "uzbek_translation": "Qiz", "transliteration": "bint", "category": "soz"},
 
-    # ─── Level 4: Marketplace & Household — Nouns I ──────────────────────────
-    {"level_id": 4, "arabic_word": "سُوقٌ", "uzbek_translation": "Bozor", "transliteration": "suuq", "category": "joy"},
-    {"level_id": 4, "arabic_word": "خُبْزٌ", "uzbek_translation": "Non", "transliteration": "khubz", "category": "oziq"},
-    {"level_id": 4, "arabic_word": "مَاءٌ", "uzbek_translation": "Suv", "transliteration": "maa'", "category": "oziq"},
-    {"level_id": 4, "arabic_word": "طَعَامٌ", "uzbek_translation": "Taom", "transliteration": "ta'aam", "category": "oziq"},
-    {"level_id": 4, "arabic_word": "شَايٌ", "uzbek_translation": "Choy", "transliteration": "shaay", "category": "oziq"},
-    {"level_id": 4, "arabic_word": "تُفَّاحٌ", "uzbek_translation": "Olma", "transliteration": "tuffaah", "category": "oziq"},
-    {"level_id": 4, "arabic_word": "سَيَّارَةٌ", "uzbek_translation": "Mashina", "transliteration": "sayyaara", "category": "transport"},
-    {"level_id": 4, "arabic_word": "طَرِيقٌ", "uzbek_translation": "Yo'l", "transliteration": "tariiq", "category": "joy"},
-    {"level_id": 4, "arabic_word": "مَكْتَبٌ", "uzbek_translation": "Ish stoli / Ofis", "transliteration": "maktab", "category": "uy"},
-    {"level_id": 4, "arabic_word": "كُرْسِيٌّ", "uzbek_translation": "Stul", "transliteration": "kursi", "category": "uy"},
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 8 — Shifohiya: Olmoshlar va ko'rsatish olmoshlari
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 8, "arabic_word": "أَنَا", "uzbek_translation": "Men", "transliteration": "ana", "category": "zamir",
+     "example_sentence_arabic": "أَنَا طَالِبٌ", "example_sentence_uzbek": "Men talabaman"},
+    {"level_id": 8, "arabic_word": "أَنْتَ", "uzbek_translation": "Sen (erkak)", "transliteration": "anta", "category": "zamir",
+     "example_sentence_arabic": "أَنْتَ طَالِبٌ", "example_sentence_uzbek": "Sen talabasan"},
+    {"level_id": 8, "arabic_word": "أَنْتِ", "uzbek_translation": "Sen (ayol)", "transliteration": "anti", "category": "zamir"},
+    {"level_id": 8, "arabic_word": "هُوَ", "uzbek_translation": "U (erkak)", "transliteration": "huwa", "category": "zamir"},
+    {"level_id": 8, "arabic_word": "هِيَ", "uzbek_translation": "U (ayol)", "transliteration": "hiya", "category": "zamir"},
+    {"level_id": 8, "arabic_word": "نَحْنُ", "uzbek_translation": "Biz", "transliteration": "nahnu", "category": "zamir"},
+    {"level_id": 8, "arabic_word": "هُمْ", "uzbek_translation": "Ular (erkak)", "transliteration": "hum", "category": "zamir"},
+    {"level_id": 8, "arabic_word": "هَذَا", "uzbek_translation": "Bu (erkak)", "transliteration": "haaza", "category": "zamir",
+     "example_sentence_arabic": "هَذَا كِتَابٌ", "example_sentence_uzbek": "Bu kitob"},
+    {"level_id": 8, "arabic_word": "هَذِهِ", "uzbek_translation": "Bu (ayol)", "transliteration": "haazihi", "category": "zamir"},
+    {"level_id": 8, "arabic_word": "ذَلِكَ", "uzbek_translation": "U / Ul (uzoq)", "transliteration": "zaalika", "category": "zamir"},
 
-    # ─── Level 5: Household — Nouns II ───────────────────────────────────────
-    {"level_id": 5, "arabic_word": "غُرْفَةٌ", "uzbek_translation": "Xona", "transliteration": "ghurfa", "category": "uy"},
-    {"level_id": 5, "arabic_word": "نَافِذَةٌ", "uzbek_translation": "Deraza", "transliteration": "naafiza", "category": "uy"},
-    {"level_id": 5, "arabic_word": "مَطْبَخٌ", "uzbek_translation": "Oshxona", "transliteration": "matbakh", "category": "uy"},
-    {"level_id": 5, "arabic_word": "حَمَّامٌ", "uzbek_translation": "Hammom", "transliteration": "hammaam", "category": "uy"},
-    {"level_id": 5, "arabic_word": "سَرِيرٌ", "uzbek_translation": "Karavot", "transliteration": "sariir", "category": "uy"},
-    {"level_id": 5, "arabic_word": "مِفْتَاحٌ", "uzbek_translation": "Kalit", "transliteration": "miftaah", "category": "buyum"},
-    {"level_id": 5, "arabic_word": "هَاتِفٌ", "uzbek_translation": "Telefon", "transliteration": "haatif", "category": "buyum"},
-    {"level_id": 5, "arabic_word": "سَاعَةٌ", "uzbek_translation": "Soat", "transliteration": "saa'a", "category": "buyum"},
-    {"level_id": 5, "arabic_word": "مَلَابِسٌ", "uzbek_translation": "Kiyimlar", "transliteration": "malaabis", "category": "kiyim"},
-    {"level_id": 5, "arabic_word": "حَقِيبَةٌ", "uzbek_translation": "Sumka", "transliteration": "haqiiba", "category": "kiyim"},
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 9 — Shifohiya: Sifatlar
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 9, "arabic_word": "كَبِيرٌ", "uzbek_translation": "Katta", "transliteration": "kabiir", "category": "sifat",
+     "example_sentence_arabic": "هَذَا بَيْتٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta uy"},
+    {"level_id": 9, "arabic_word": "صَغِيرٌ", "uzbek_translation": "Kichik", "transliteration": "saghiir", "category": "sifat",
+     "example_sentence_arabic": "هَذَا كِتَابٌ صَغِيرٌ", "example_sentence_uzbek": "Bu kichik kitob"},
+    {"level_id": 9, "arabic_word": "جَدِيدٌ", "uzbek_translation": "Yangi", "transliteration": "jadiid", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "قَدِيمٌ", "uzbek_translation": "Eski", "transliteration": "qadiim", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "جَمِيلٌ", "uzbek_translation": "Chiroyli", "transliteration": "jamiil", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "سَرِيعٌ", "uzbek_translation": "Tez", "transliteration": "sarii", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "بَطِيءٌ", "uzbek_translation": "Sekin", "transliteration": "batii", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "طَوِيلٌ", "uzbek_translation": "Uzun / Baland", "transliteration": "tawiil", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "قَصِيرٌ", "uzbek_translation": "Qisqa / Past", "transliteration": "qasiir", "category": "sifat"},
+    {"level_id": 9, "arabic_word": "قَوِيٌّ", "uzbek_translation": "Kuchli", "transliteration": "qawiyy", "category": "sifat"},
 
-    # ─── Level 6: Grove of Actions — Past Tense ──────────────────────────────
-    {"level_id": 6, "arabic_word": "كَتَبَ", "uzbek_translation": "Yozdi", "transliteration": "kataba", "category": "fe'l",
-     "example_sentence_arabic": "كَتَبَ الطَّالِبُ الدَّرْسَ", "example_sentence_uzbek": "Talaba darsni yozdi"},
-    {"level_id": 6, "arabic_word": "قَرَأَ", "uzbek_translation": "O'qidi", "transliteration": "qara'a", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "ذَهَبَ", "uzbek_translation": "Ketdi", "transliteration": "zahaba", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "أَكَلَ", "uzbek_translation": "Yedi", "transliteration": "akala", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "شَرِبَ", "uzbek_translation": "Ichdi", "transliteration": "shariba", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "جَلَسَ", "uzbek_translation": "O'tirdi", "transliteration": "jalasa", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "نَامَ", "uzbek_translation": "Uxladi", "transliteration": "naama", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "فَتَحَ", "uzbek_translation": "Ochdi", "transliteration": "fataha", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "أَخَذَ", "uzbek_translation": "Oldi", "transliteration": "akhaza", "category": "fe'l"},
-    {"level_id": 6, "arabic_word": "دَخَلَ", "uzbek_translation": "Kirdi", "transliteration": "dakhala", "category": "fe'l"},
-
-    # ─── Level 7: Grove of Actions — Present Tense ───────────────────────────
-    {"level_id": 7, "arabic_word": "يَكْتُبُ", "uzbek_translation": "Yozmoqda", "transliteration": "yaktubu", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَقْرَأُ", "uzbek_translation": "O'qimoqda", "transliteration": "yaqra'u", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَذْهَبُ", "uzbek_translation": "Ketmoqda", "transliteration": "yazhabu", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَأْكُلُ", "uzbek_translation": "Yemoqda", "transliteration": "ya'kulu", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَشْرَبُ", "uzbek_translation": "Ichmoqda", "transliteration": "yashrabu", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يُصَلِّي", "uzbek_translation": "Namoz o'qimoqda", "transliteration": "yusalli", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَعْلَمُ", "uzbek_translation": "Bilmoqda", "transliteration": "ya'lamu", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَقُولُ", "uzbek_translation": "Aytmoqda", "transliteration": "yaquulu", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَسْمَعُ", "uzbek_translation": "Eshitmoqda", "transliteration": "yasma'u", "category": "fe'l"},
-    {"level_id": 7, "arabic_word": "يَنْظُرُ", "uzbek_translation": "Qarmoqda", "transliteration": "yanzuru", "category": "fe'l"},
-
-    # ─── Level 8: Sentence Building ───────────────────────────────────────────
-    {"level_id": 8, "arabic_word": "فِي", "uzbek_translation": "Ichida / Da", "transliteration": "fii", "category": "bog'lovchi"},
-    {"level_id": 8, "arabic_word": "عَلَى", "uzbek_translation": "Ustida", "transliteration": "'alaa", "category": "bog'lovchi"},
-    {"level_id": 8, "arabic_word": "مِنْ", "uzbek_translation": "Dan", "transliteration": "min", "category": "bog'lovchi"},
-    {"level_id": 8, "arabic_word": "إِلَى", "uzbek_translation": "Ga qarab", "transliteration": "ilaa", "category": "bog'lovchi"},
-    {"level_id": 8, "arabic_word": "مَعَ", "uzbek_translation": "Bilan", "transliteration": "ma'a", "category": "bog'lovchi"},
-    {"level_id": 8, "arabic_word": "لَا", "uzbek_translation": "Yo'q / Emas", "transliteration": "laa", "category": "inkor"},
-    {"level_id": 8, "arabic_word": "نَعَمْ", "uzbek_translation": "Ha", "transliteration": "na'am", "category": "javob"},
-    {"level_id": 8, "arabic_word": "جَيِّدٌ", "uzbek_translation": "Yaxshi", "transliteration": "jayyid", "category": "sifat"},
-    {"level_id": 8, "arabic_word": "جَمِيلٌ", "uzbek_translation": "Chiroyli", "transliteration": "jamiil", "category": "sifat"},
-    {"level_id": 8, "arabic_word": "كَثِيرٌ", "uzbek_translation": "Ko'p", "transliteration": "kasiir", "category": "sifat"},
-
-    # ─── Level 9: Wise Scholar — Complex Vocabulary ───────────────────────────
-    {"level_id": 9, "arabic_word": "الْعِلْمُ", "uzbek_translation": "Ilm (bilim)", "transliteration": "al-'ilm", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الْإِيمَانُ", "uzbek_translation": "Iymon", "transliteration": "al-iimaan", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الصَّلَاةُ", "uzbek_translation": "Namoz", "transliteration": "as-salaah", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الصِّيَامُ", "uzbek_translation": "Ro'za", "transliteration": "as-siyaam", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الزَّكَاةُ", "uzbek_translation": "Zakot", "transliteration": "az-zakaah", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الْحَجُّ", "uzbek_translation": "Haj", "transliteration": "al-hajj", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الْقُرْآنُ", "uzbek_translation": "Qur'on", "transliteration": "al-qur'aan", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الرَّحْمَةُ", "uzbek_translation": "Rahmat (marhamat)", "transliteration": "ar-rahma", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الصَّبْرُ", "uzbek_translation": "Sabr", "transliteration": "as-sabr", "category": "islom"},
-    {"level_id": 9, "arabic_word": "الشُّكْرُ", "uzbek_translation": "Shukr", "transliteration": "ash-shukr", "category": "islom"},
-
-    # ─── Level 10: The Wise Scholar — Quranic Phrases ────────────────────────
-    {"level_id": 10, "arabic_word": "بِسْمِ اللَّهِ", "uzbek_translation": "Alloh nomi bilan", "transliteration": "bismillah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "الْحَمْدُ لِلَّهِ", "uzbek_translation": "Barcha maqtovlar Allohga", "transliteration": "alhamdulillah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "سُبْحَانَ اللَّهِ", "uzbek_translation": "Alloh pok", "transliteration": "subhanallah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "اللَّهُ أَكْبَرُ", "uzbek_translation": "Alloh buyuk", "transliteration": "allahu akbar", "category": "dua"},
-    {"level_id": 10, "arabic_word": "لَا إِلَهَ إِلَّا اللَّهُ", "uzbek_translation": "Allohdan boshqa iloh yo'q", "transliteration": "la ilaha illallah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "إِنْ شَاءَ اللَّهُ", "uzbek_translation": "Alloh xohlasa", "transliteration": "inshallah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "مَاشَاءَ اللَّهُ", "uzbek_translation": "Alloh nimalikini xohladi", "transliteration": "mashallah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "جَزَاكَ اللَّهُ خَيْرًا", "uzbek_translation": "Alloh sizga yaxshilik bersin", "transliteration": "jazakallahu khayran", "category": "dua"},
-    {"level_id": 10, "arabic_word": "أَسْتَغْفِرُ اللَّهَ", "uzbek_translation": "Allohdan mag'firat so'rayman", "transliteration": "astaghfirullah", "category": "dua"},
-    {"level_id": 10, "arabic_word": "تَوَكَّلْتُ عَلَى اللَّهِ", "uzbek_translation": "Allohga tavakkal qildim", "transliteration": "tawakkaltu 'alallah", "category": "dua"},
+    # ══════════════════════════════════════════════════════════════
+    # LEVEL 10 — Shifohiya: Fe'llar va jumlalar
+    # ══════════════════════════════════════════════════════════════
+    {"level_id": 10, "arabic_word": "ذَهَبَ", "uzbek_translation": "Ketdi", "transliteration": "zahaba", "category": "fel",
+     "example_sentence_arabic": "ذَهَبَ الْوَلَدُ إِلَى الْبَيْتِ", "example_sentence_uzbek": "Bola uyga ketdi"},
+    {"level_id": 10, "arabic_word": "جَاءَ", "uzbek_translation": "Keldi", "transliteration": "jaa'a", "category": "fel",
+     "example_sentence_arabic": "جَاءَ الطَّالِبُ إِلَى الْفَصْلِ", "example_sentence_uzbek": "Talaba sinfga keldi"},
+    {"level_id": 10, "arabic_word": "كَتَبَ", "uzbek_translation": "Yozdi", "transliteration": "kataba", "category": "fel",
+     "example_sentence_arabic": "كَتَبَ الْوَلَدُ الدَّرْسَ", "example_sentence_uzbek": "Bola darsni yozdi"},
+    {"level_id": 10, "arabic_word": "قَرَأَ", "uzbek_translation": "O'qidi", "transliteration": "qara'a", "category": "fel",
+     "example_sentence_arabic": "قَرَأَ الطَّالِبُ الْكِتَابَ", "example_sentence_uzbek": "Talaba kitobni o'qidi"},
+    {"level_id": 10, "arabic_word": "أَكَلَ", "uzbek_translation": "Yedi", "transliteration": "akala", "category": "fel"},
+    {"level_id": 10, "arabic_word": "شَرِبَ", "uzbek_translation": "Ichdi", "transliteration": "shariba", "category": "fel"},
+    {"level_id": 10, "arabic_word": "جَلَسَ", "uzbek_translation": "O'tirdi", "transliteration": "jalasa", "category": "fel"},
+    {"level_id": 10, "arabic_word": "نَامَ", "uzbek_translation": "Uxladi", "transliteration": "naama", "category": "fel"},
+    {"level_id": 10, "arabic_word": "فَتَحَ", "uzbek_translation": "Ochdi", "transliteration": "fataha", "category": "fel"},
+    {"level_id": 10, "arabic_word": "دَخَلَ", "uzbek_translation": "Kirdi", "transliteration": "dakhala", "category": "fel",
+     "example_sentence_arabic": "دَخَلَ الْوَلَدُ الْغُرْفَةَ", "example_sentence_uzbek": "Bola xonaga kirdi"},
 ]
+
+
+RELIGIOUS_CATEGORIES = {"islom", "dua"}
+RELIGIOUS_WORDS = {
+    "بِسْمِ اللَّهِ", "الْحَمْدُ لِلَّهِ", "سُبْحَانَ اللَّهِ",
+    "اللَّهُ أَكْبَرُ", "لَا إِلَهَ إِلَّا اللَّهُ",
+    "الصَّلَاةُ", "الصِّيَامُ", "الزَّكَاةُ", "الْحَجُّ",
+    "الْقُرْآنُ", "الْإِيمَانُ",
+}
 
 
 async def seed():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    from sqlalchemy import delete
     async with async_session_maker() as session:
-        existing = await session.execute(select(Vocabulary))
-        if existing.scalars().first():
-            print("Database already has vocabulary. Skipping seed.")
-            return
+        # Wipe old religious content if present
+        existing = (await session.execute(select(Vocabulary))).scalars().first()
+        if existing:
+            if existing.category in RELIGIOUS_CATEGORIES or existing.arabic_word in RELIGIOUS_WORDS:
+                await session.execute(delete(Vocabulary))
+                await session.commit()
+                print("Wiped old religious vocabulary. Re-seeding...")
+            else:
+                print(f"Vocabulary already populated ({existing.word_id}+). Skipping.")
+                return
 
         for item in VOCABULARY:
-            word = Vocabulary(**item)
-            session.add(word)
-
+            session.add(Vocabulary(**item))
         await session.commit()
         print(f"Seeded {len(VOCABULARY)} vocabulary words across 10 levels.")
 

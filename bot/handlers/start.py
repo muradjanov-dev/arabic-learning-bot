@@ -99,3 +99,49 @@ async def cmd_menu(message: Message, state: FSMContext, user):
         return
     await state.clear()
     await message.answer(MAIN_MENU, reply_markup=main_menu_kb())
+
+
+@router.message(Command("lesson"))
+async def cmd_lesson(message: Message, state: FSMContext, user):
+    if not user.is_registered:
+        await message.answer("Avval /start orqali ro'yxatdan o'ting.")
+        return
+    await state.clear()
+    await message.answer(MAIN_MENU, reply_markup=main_menu_kb())
+
+
+@router.message(Command("profile"))
+async def cmd_profile(message: Message, user):
+    if not user.is_registered:
+        await message.answer("Avval /start orqali ro'yxatdan o'ting.")
+        return
+    from bot.keyboards.main_kb import back_to_menu_kb
+    from bot.utils.messages import PROFILE_TEXT
+    from bot.services.gamification import tier_display
+    text = PROFILE_TEXT.format(
+        name=user.full_name or "-",
+        age=user.age or "-",
+        arabic_level=user.arabic_level.value if user.arabic_level else "-",
+        level=user.current_level,
+        xp=user.current_xp,
+        streak=user.streak_days,
+        shijoat=user.shijoat_points,
+        tier=tier_display(user.subscription_tier),
+        mastered=0,
+    )
+    await message.answer(text, reply_markup=back_to_menu_kb())
+
+
+@router.message(Command("subscription"))
+async def cmd_subscription(message: Message, user):
+    if not user.is_registered:
+        await message.answer("Avval /start orqali ro'yxatdan o'ting.")
+        return
+    from bot.keyboards.main_kb import subscription_kb
+    from bot.utils.messages import SUBSCRIPTION_INFO
+    from bot.config import settings as s
+    text = SUBSCRIPTION_INFO.format(
+        premium_price=s.PREMIUM_PRICE_DISPLAY,
+        unlimited_price=s.UNLIMITED_PRICE_DISPLAY,
+    )
+    await message.answer(text, reply_markup=subscription_kb())

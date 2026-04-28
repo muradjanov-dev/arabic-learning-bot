@@ -6,14 +6,12 @@ WELCOME = (
 )
 
 ASK_NAME = "Ismingizni kiriting:"
-
 ASK_AGE = "Yoshingizni kiriting (raqamda):"
-
 ASK_ARABIC_LEVEL = "Arab tili darajangizni tanlang:"
 
 REGISTRATION_DONE = (
     "Ajoyib! Ro'yxatdan o'tish muvaffaqiyatli yakunlandi. 🎉\n\n"
-    "Siz 1-darajadan boshlanasiz. Muvaffaqiyatlar!"
+    "Siz {level}-darajadan boshlanasiz. Muvaffaqiyatlar!"
 )
 
 MAIN_MENU = "Asosiy menyu. Nima qilishni xohlaysiz?"
@@ -39,18 +37,50 @@ LESSON_COMPLETE = (
     "🔥 Streak: {streak} kun"
 )
 
+# Question templates
+QUESTION_HEADER = "📝 Savol {idx}/{total}  |  ⚡ {shijoat}"
+QUESTION_HEADER_NEW = "📝 Savol {idx}/{total}  |  ⚡ {shijoat}  |  🆕 YANGI"
+NEW_WORD_INTRO = "📚 <b>Yangi so'z bilan tanishing:</b>\n<b>{arabic}</b> = {uzbek}\n\n👇 Quyidan to'g'ri javobni tanlang:"
 QUESTION_VISUAL = "Quyidagi arabcha so'zning o'zbekcha tarjimasini toping:\n\n<b>{arabic}</b>"
-QUESTION_AUDIO = "Audio eshiting va to'g'ri tarjimani tanlang:"
+QUESTION_AUDIO = "🔊 Audio eshiting va to'g'ri tarjimani tanlang:"
 QUESTION_JUMBLED = (
     "Quyidagi jumlani arabchaga tarjima qiling:\n\n"
     "<b>{uzbek}</b>\n\n"
-    "So'zlarni to'g'ri tartibda bosing:"
+    "👇 So'zlarni to'g'ri tartibda bosing:"
 )
-JUMBLED_SELECTED = "Tanlangan: {words}"
-JUMBLED_EMPTY = "(hech narsa tanlanmagan)"
 
-CORRECT_ANSWER = "✅ To'g'ri! +{xp} XP"
-WRONG_ANSWER = "❌ Noto'g'ri! To'g'ri javob: <b>{correct}</b>"
+# Jumbled answer indicator (clearly visible)
+JUMBLED_SELECTED = "━━━━━━━━━━━━━━\n👉 <b>Sizning javobingiz:</b>\n📝 <code>{words}</code>\n━━━━━━━━━━━━━━"
+JUMBLED_EMPTY = "━━━━━━━━━━━━━━\n👉 <b>Sizning javobingiz:</b>\n<i>(So'zlarni quyidan tanlang)</i>\n━━━━━━━━━━━━━━"
+
+# Per-correct motivation toasts (random)
+CORRECT_MOTIVATIONS = [
+    "Zo'r! 🎉",
+    "Ajoyib! 🌟",
+    "Barakalloh! 💪",
+    "Mukammal! ✨",
+    "Aniq javob! ⚡",
+    "Olg'a! 🚀",
+    "Yashang! 🏆",
+    "Tabriklayman! 🎊",
+    "Siz uddalaysiz! 💎",
+    "Ofarin! 👏",
+    "Kuchli! 💥",
+    "Daho! 🧠",
+    "Ehtirom! 🤝",
+    "Ijodkor! 🎨",
+    "Cho'qqiga yaqinlashmoqdasiz! ⛰️",
+    "Bilim qudratidir! 📚",
+    "Aql sinami! 🔥",
+    "Mubolag'a yo'q! 🥇",
+]
+
+WRONG_HINTS = [
+    "Bu safar emas. To'g'ri javob:",
+    "Yo'q. Esda saqlang:",
+    "Yaqin keldingiz, lekin to'g'ri javob:",
+    "Keyingi safar! To'g'ri javob:",
+]
 
 PROFILE_TEXT = (
     "<b>Sahifam</b>\n\n"
@@ -67,13 +97,9 @@ PROFILE_TEXT = (
 
 BANNED_MESSAGE = "Siz botdan blok qilindingiz. Admin bilan bog'laning."
 
-SHIJOAT_UPSELL = (
-    "⚡ Shijoatingiz tugadi!\n\n"
-    "Premium yoki Cheksiz obunaga o'tib, to'xtovsiz o'rganing! 💎"
-)
+SHIJOAT_UPSELL = "⚡ Shijoatingiz tugadi!\n\nPremium yoki Cheksiz obunaga o'tib, to'xtovsiz o'rganing! 💎"
 
-# ── Subscription ──────────────────────────────────────────────────────────────
-
+# Subscription
 SUBSCRIPTION_INFO = (
     "<b>Obuna turlari</b>\n\n"
     "🆓 <b>Bepul</b>: 100 Shijoat/kun\n\n"
@@ -96,15 +122,8 @@ PAYMENT_INSTRUCTIONS = (
     "yuboring. Admin 24 soat ichida tasdiqlaydi."
 )
 
-PAYMENT_RECEIPT_PROMPT = (
-    "To'lov cheki rasmini yuboring:\n\n"
-    "(Bankdan screenshot yoki karta ko'chirmasi)"
-)
-
-PAYMENT_SENT = (
-    "Chekingiz adminga yuborildi! ✅\n\n"
-    "Tez orada tasdiqlanadi. Sabr qiling. 🙏"
-)
+PAYMENT_RECEIPT_PROMPT = "To'lov cheki rasmini yuboring:\n\n(Bankdan screenshot yoki karta ko'chirmasi)"
+PAYMENT_SENT = "Chekingiz adminga yuborildi! ✅\n\nTez orada tasdiqlanadi. Sabr qiling. 🙏"
 
 PAYMENT_APPROVED = (
     "Tabriklaymiz! 🎉\n\n"
@@ -120,8 +139,6 @@ PAYMENT_DECLINED = (
     "Qayta urinib ko'ring yoki admin bilan bog'laning."
 )
 
-# ── Admin payment notification ────────────────────────────────────────────────
-
 ADMIN_PAYMENT_NOTIFICATION = (
     "💳 <b>Yangi to'lov so'rovi #{request_id}</b>\n\n"
     "👤 Foydalanuvchi: {name}\n"
@@ -135,8 +152,6 @@ ADMIN_PAYMENT_NOTIFICATION = (
 ADMIN_PAYMENT_APPROVED_MARK = "✅ TASDIQLANDI — {name} ({user_id})"
 ADMIN_PAYMENT_DECLINED_MARK = "❌ RAD ETILDI — {name} ({user_id})"
 
-# ── Trial ─────────────────────────────────────────────────────────────────────
-
 TRIAL_NOTIFICATION = (
     "Assalomu alaykum, {name}! 🎁\n\n"
     "Siz botimizga kechagi keldingiz — <b>2 kunlik Premium sinov tarifi</b> "
@@ -145,8 +160,6 @@ TRIAL_NOTIFICATION = (
     "📅 Sinov muddati: bugun va ertaga\n\n"
     "Arab tilini o'rganishni davom ettiring! 💪"
 )
-
-# ── Subscription expiry ───────────────────────────────────────────────────────
 
 SUBSCRIPTION_EXPIRED = (
     "Sizning <b>{tier_name}</b> obunangiz tugadi. ⏰\n\n"
@@ -160,14 +173,13 @@ SUBSCRIPTION_EXPIRES_SOON = (
     "Obunani yangilab, o'rganishni uzluksiz davom ettiring. 💪"
 )
 
-# ── Admin panel ───────────────────────────────────────────────────────────────
+# Pinned progress
+PROGRESS_PIN = "📊 <b>Dars davom etmoqda</b>\n{bar} {pct}%\nSavol {current}/{total}"
 
+# Admin
 ADMIN_MAIN = "<b>Admin Panel</b>\n\nXush kelibsiz, admin!"
-
 ADMIN_STATS_HEADER = "<b>Bot Statistikasi</b>\n\n"
-
 ADMIN_USER_LIST_HEADER = "<b>Foydalanuvchilar ro'yxati</b>\n\nJami: {total} ta\n\n"
-
 ADMIN_USER_DETAIL = (
     "<b>Foydalanuvchi Ma'lumoti</b>\n\n"
     "🆔 ID: <code>{user_id}</code>\n"
@@ -192,7 +204,7 @@ BROADCAST_DONE = "Xabar {sent}/{total} foydalanuvchiga yuborildi."
 REMINDER_MESSAGES = [
     "Sizning sergakligingiz qayerda qoldi? Arab tili sizni kutyapti! Bugungi shijoat ballaringizdan foydalaning! 🦉🔥",
     "Arab tilida yana bir jumlani o'rganishga atigi 5 daqiqa vaqtingiz ketadi. Kunlik seriyangizni (streak) yo'qotib qo'ymang! ⏳📚",
-    "Har bir o'rgangan so'z jannatga bir qadam! Arab tilini o'rganishni davom ettiring. 🌙✨",
+    "Bilim — boylik. Bugungi darsni o'tkazib yubormang! 📖✨",
     "Bugun dars qildingizmi? Streak to'plamni davom ettiring! 🔥📖",
-    "Bilim yo'lida har kun bir qadam! Bugungi darsni boshlang. 💪🕌",
+    "Bilim yo'lida har kun bir qadam! Bugungi darsni boshlang. 💪",
 ]
