@@ -75,9 +75,21 @@ async def _auto_seed_vocabulary() -> None:
 
 
 async def on_startup(bot: Bot) -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Database tables ensured.")
+    # Retry DB connection — cold-start of Postgres can take a few seconds
+    last_err = None
+    for attempt in range(1, 11):
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info(f"Database tables ensured (attempt {attempt}).")
+            break
+        except Exception as e:
+            last_err = e
+            logger.warning(f"DB connect attempt {attempt}/10 failed: {type(e).__name__}: {e}")
+            await asyncio.sleep(min(attempt * 2, 10))
+    else:
+        logger.error(f"Database unreachable after 10 attempts. Last error: {last_err}")
+        raise last_err
 
     try:
         await _auto_seed_vocabulary()
