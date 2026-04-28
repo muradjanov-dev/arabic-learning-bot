@@ -121,7 +121,18 @@ def build_dispatcher() -> Dispatcher:
 
 async def main() -> None:
     if not settings.BOT_TOKEN:
-        raise ValueError("BOT_TOKEN is not set. Check your .env file.")
+        raise ValueError("BOT_TOKEN is not set. Check your environment variables.")
+
+    # Surface DB host so misconfigured DATABASE_URL is obvious in logs
+    import re
+    host_match = re.search(r"@([^/]+)/", settings.DATABASE_URL or "")
+    db_host = host_match.group(1) if host_match else "unknown"
+    logger.info(f"DATABASE host: {db_host}")
+    if "localhost" in db_host or "127.0.0.1" in db_host:
+        logger.error(
+            "DATABASE_URL points to localhost — on Railway this won't work. "
+            "Set DATABASE_URL=${{Postgres.DATABASE_URL}} in service variables."
+        )
 
     bot = Bot(
         token=settings.BOT_TOKEN,
