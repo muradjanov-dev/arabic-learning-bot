@@ -25,13 +25,19 @@ logger = logging.getLogger(__name__)
 
 
 def _get_storage():
+    # Only use Redis if REDIS_URL points to a real Redis service
+    # (not the default localhost which won't exist on Railway)
+    redis_url = (settings.REDIS_URL or "").strip()
+    if not redis_url or "localhost" in redis_url or "127.0.0.1" in redis_url:
+        logger.info("Using MemoryStorage for FSM (no Redis configured)")
+        return MemoryStorage()
     try:
         from aiogram.fsm.storage.redis import RedisStorage
-        storage = RedisStorage.from_url(settings.REDIS_URL)
-        logger.info("Using Redis FSM storage")
+        storage = RedisStorage.from_url(redis_url)
+        logger.info(f"Using Redis FSM storage at {redis_url.split('@')[-1]}")
         return storage
     except Exception as e:
-        logger.warning(f"Redis unavailable ({e}), using MemoryStorage")
+        logger.warning(f"Redis init failed ({e}), falling back to MemoryStorage")
         return MemoryStorage()
 
 
