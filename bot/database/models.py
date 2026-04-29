@@ -47,6 +47,8 @@ class User(Base):
     is_notification_enabled = Column(Boolean, default=True, nullable=False)
     subscription_expires = Column(DateTime, nullable=True)
     trial_given = Column(Boolean, default=False, nullable=False)
+    achievements_earned = Column(Text, nullable=True, default="")
+    shijoat_pin_id = Column(Integer, nullable=True)
 
     progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")
     lessons = relationship("Lesson", back_populates="user", cascade="all, delete-orphan")

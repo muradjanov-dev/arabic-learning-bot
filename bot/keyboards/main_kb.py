@@ -1,13 +1,45 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import (
+    InlineKeyboardMarkup, InlineKeyboardButton,
+    ReplyKeyboardMarkup, KeyboardButton,
+)
 
+# ── Reply keyboard button labels (must match handler F.text filters) ──────────
+KB_LESSON = "📖 Dars boshlash"
+KB_PROFILE = "📊 Sahifam"
+KB_ROADMAP = "🗺 Yo'lxarita"
+KB_LEADERBOARD = "🏆 Reyting"
+KB_PREMIUM = "💎 Premium"
+KB_SETTINGS = "⚙️ Sozlamalar"
+
+
+def reply_main_kb() -> ReplyKeyboardMarkup:
+    """Persistent keyboard shown at bottom of every chat screen."""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=KB_LESSON), KeyboardButton(text=KB_PROFILE)],
+            [KeyboardButton(text=KB_ROADMAP), KeyboardButton(text=KB_LEADERBOARD)],
+            [KeyboardButton(text=KB_PREMIUM), KeyboardButton(text=KB_SETTINGS)],
+        ],
+        resize_keyboard=True,
+        persistent=True,
+        input_field_placeholder="Quyidagi tugmalardan birini bosing...",
+    )
+
+
+# ── Inline keyboards ──────────────────────────────────────────────────────────
 
 def main_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📖 Dars boshlash", callback_data="menu:lesson")],
-        [InlineKeyboardButton(text="📊 Sahifam", callback_data="menu:profile"),
-         InlineKeyboardButton(text="🏆 Reyting", callback_data="menu:leaderboard")],
-        [InlineKeyboardButton(text="💎 Premium", callback_data="menu:subscription"),
-         InlineKeyboardButton(text="⚙️ Sozlamalar", callback_data="menu:settings")],
+        [
+            InlineKeyboardButton(text="📊 Sahifam", callback_data="menu:profile"),
+            InlineKeyboardButton(text="🏆 Reyting", callback_data="menu:leaderboard"),
+        ],
+        [
+            InlineKeyboardButton(text="🗺 Yo'lxarita", callback_data="menu:roadmap"),
+            InlineKeyboardButton(text="⚙️ Sozlamalar", callback_data="menu:settings"),
+        ],
+        [InlineKeyboardButton(text="💎 Premium", callback_data="menu:subscription")],
     ])
 
 
@@ -27,7 +59,8 @@ def back_to_menu_kb() -> InlineKeyboardMarkup:
 
 def confirm_lesson_kb(_shijoat: int = 0) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="▶️ Boshlash", callback_data="lesson:start")],
+        [InlineKeyboardButton(text="▶️ Boshlash!", callback_data="lesson:start")],
+        [InlineKeyboardButton(text="🗺 Yo'lxarita", callback_data="menu:roadmap")],
         [InlineKeyboardButton(text="⬅️ Bekor qilish", callback_data="menu:main")],
     ])
 
@@ -36,6 +69,7 @@ def settings_kb(notifications_on: bool) -> InlineKeyboardMarkup:
     notif_text = "🔔 Bildirishnomalar: Yoqilgan ✅" if notifications_on else "🔕 Bildirishnomalar: O'chirilgan ❌"
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=notif_text, callback_data="settings:toggle_notif")],
+        [InlineKeyboardButton(text="🧠 Qanday ishlaydi?", callback_data="settings:how_it_works")],
         [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="menu:main")],
     ])
 
@@ -64,8 +98,14 @@ def upsell_kb() -> InlineKeyboardMarkup:
 
 
 def renew_subscription_kb() -> InlineKeyboardMarkup:
-    """CTA shown when subscription expires."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔄 Obunani yangilash", callback_data="menu:subscription")],
         [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="menu:main")],
+    ])
+
+
+def roadmap_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📖 Dars boshlash", callback_data="menu:lesson")],
+        [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="menu:main")],
     ])

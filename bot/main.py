@@ -90,6 +90,18 @@ async def _auto_seed_vocabulary() -> None:
         logger.info(f"Auto-seeded {len(VOCABULARY)} vocabulary words.")
 
 
+async def _run_column_migrations() -> None:
+    from sqlalchemy import text
+    migrations = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS achievements_earned TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS shijoat_pin_id INTEGER",
+    ]
+    async with engine.begin() as conn:
+        for sql in migrations:
+            await conn.execute(text(sql))
+    logger.info("Column migrations applied.")
+
+
 async def on_startup(bot: Bot) -> None:
     # Retry DB connection — cold-start of Postgres can take a few seconds
     last_err = None
@@ -106,6 +118,11 @@ async def on_startup(bot: Bot) -> None:
     else:
         logger.error(f"Database unreachable after 10 attempts. Last error: {last_err}")
         raise last_err
+
+    try:
+        await _run_column_migrations()
+    except Exception as e:
+        logger.warning(f"Column migrations skipped: {e}")
 
     try:
         await _auto_seed_vocabulary()

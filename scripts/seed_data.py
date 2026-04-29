@@ -72,17 +72,18 @@ VOCABULARY = [
 
     # ══════════════════════════════════════════════════════════════
     # LEVEL 5 — Harakatlar (unli belgilari)
+    # Harakat bazasida ba (ب) harfi orqali ko'rsatiladi
     # ══════════════════════════════════════════════════════════════
-    {"level_id": 5, "arabic_word": "َ", "uzbek_translation": "Fatha (a)", "transliteration": "fatha", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ِ", "uzbek_translation": "Kasra (i)", "transliteration": "kasra", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ُ", "uzbek_translation": "Damma (u)", "transliteration": "damma", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ْ", "uzbek_translation": "Sukun (sokin)", "transliteration": "sukun", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ً", "uzbek_translation": "Tanvin fatha (an)", "transliteration": "tanwin fatha", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ٍ", "uzbek_translation": "Tanvin kasra (in)", "transliteration": "tanwin kasra", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ٌ", "uzbek_translation": "Tanvin damma (un)", "transliteration": "tanwin damma", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "ّ", "uzbek_translation": "Shadda (ikkilanish)", "transliteration": "shadda", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "بَا", "uzbek_translation": "Ba + uzun a (madd alif)", "transliteration": "baa", "category": "harakat"},
-    {"level_id": 5, "arabic_word": "بِي", "uzbek_translation": "Bi + uzun i (madd ya)", "transliteration": "bii", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بَ", "uzbek_translation": "Fatha — 'a' tovushi (ba)", "transliteration": "fatha, ba", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بِ", "uzbek_translation": "Kasra — 'i' tovushi (bi)", "transliteration": "kasra, bi", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بُ", "uzbek_translation": "Damma — 'u' tovushi (bu)", "transliteration": "damma, bu", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بْ", "uzbek_translation": "Sukun — unli yo'q (b)", "transliteration": "sukun, b", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بً", "uzbek_translation": "Tanvin fatha — 'an' (ban)", "transliteration": "tanwin fatha, ban", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بٍ", "uzbek_translation": "Tanvin kasra — 'in' (bin)", "transliteration": "tanwin kasra, bin", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بٌ", "uzbek_translation": "Tanvin damma — 'un' (bun)", "transliteration": "tanwin damma, bun", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بّ", "uzbek_translation": "Shadda — harf ikkilanadi (bb)", "transliteration": "shadda, bb", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بَا", "uzbek_translation": "Madd alif — uzun 'aa' (baa)", "transliteration": "madd alif, baa", "category": "harakat"},
+    {"level_id": 5, "arabic_word": "بِي", "uzbek_translation": "Madd ya — uzun 'ii' (bii)", "transliteration": "madd ya, bii", "category": "harakat"},
 
     # ══════════════════════════════════════════════════════════════
     # LEVEL 6 — Mabdaul Qiroat: Oddiy so'zlar (1)

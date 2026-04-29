@@ -229,6 +229,42 @@ class ProgressRepository:
         )
         return result.scalar() or 0
 
+    async def get_progress_by_level(self, user_id: int) -> dict:
+        """Returns {level_id: {"total": n, "seen": s, "mastered": m}}."""
+        from sqlalchemy import case as sa_case
+        # Total words per level
+        totals_result = await self.session.execute(
+            select(Vocabulary.level_id, func.count(Vocabulary.word_id))
+            .where(Vocabulary.is_active == True)
+            .group_by(Vocabulary.level_id)
+        )
+        totals = {row[0]: row[1] for row in totals_result.fetchall()}
+
+        # Seen / mastered per level for this user
+        progress_result = await self.session.execute(
+            select(
+                Vocabulary.level_id,
+                func.count(UserProgress.id).label("seen"),
+                func.sum(sa_case((UserProgress.mastery_level >= 4, 1), else_=0)).label("mastered"),
+            )
+            .join(UserProgress, and_(
+                UserProgress.word_id == Vocabulary.word_id,
+                UserProgress.user_id == user_id,
+            ))
+            .where(Vocabulary.is_active == True)
+            .group_by(Vocabulary.level_id)
+        )
+        user_prog = {row[0]: {"seen": row[1], "mastered": int(row[2] or 0)} for row in progress_result.fetchall()}
+
+        return {
+            lvl: {
+                "total": total,
+                "seen": user_prog.get(lvl, {}).get("seen", 0),
+                "mastered": user_prog.get(lvl, {}).get("mastered", 0),
+            }
+            for lvl, total in sorted(totals.items())
+        }
+
 
 class LessonRepository:
     def __init__(self, session: AsyncSession):
@@ -257,6 +293,23 @@ class LessonRepository:
             )
         )
         return result.scalar() or 0
+
+    async def count_good_lessons_at_level(self, user_id: int, level_id: int, min_accuracy: float = 0.7) -> int:
+        """Count completed lessons at a specific level meeting the minimum accuracy threshold."""
+        result = await self.session.execute(
+            select(Lesson).where(
+                and_(
+                    Lesson.user_id == user_id,
+                    Lesson.level_id == level_id,
+                    Lesson.is_completed == True,
+                )
+            )
+        )
+        lessons = result.scalars().all()
+        return sum(
+            1 for l in lessons
+            if l.total_questions > 0 and (l.correct_answers / l.total_questions) >= min_accuracy
+        )
 
     async def count_by_user_today(self, user_id: int) -> int:
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)

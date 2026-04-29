@@ -9,7 +9,7 @@ from aiogram import Bot
 from bot.config import settings
 from bot.database.repository import UserRepository, PaymentRepository
 from bot.database.models import SubscriptionTier
-from bot.services.gamification import get_daily_shijoat
+from bot.services.gamification import get_daily_shijoat, shijoat_pin_text
 from bot.utils.messages import (
     REMINDER_MESSAGES, TRIAL_NOTIFICATION,
     SUBSCRIPTION_EXPIRED, SUBSCRIPTION_EXPIRES_SOON,
@@ -37,6 +37,16 @@ async def reset_shijoat(session_factory: async_sessionmaker, bot: Bot) -> None:
                     shijoat_points=new_shijoat,
                     last_shijoat_reset=datetime.utcnow(),
                 )
+                if user.shijoat_pin_id:
+                    try:
+                        text = shijoat_pin_text(new_shijoat, user.streak_days, user.subscription_tier)
+                        await bot.edit_message_text(
+                            text=text,
+                            chat_id=user.user_id,
+                            message_id=user.shijoat_pin_id,
+                        )
+                    except Exception:
+                        pass
             await session.commit()
             logger.info(f"Shijoat reset for {len(users)} users.")
         except Exception as e:
