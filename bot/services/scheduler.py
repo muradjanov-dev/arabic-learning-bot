@@ -39,7 +39,26 @@ async def reset_shijoat(session_factory: async_sessionmaker, bot: Bot) -> None:
                 )
                 if user.shijoat_pin_id:
                     try:
-                        text = shijoat_pin_text(new_shijoat, user.streak_days, user.subscription_tier)
+                        from sqlalchemy import select, and_, func as sqlfunc
+                        from bot.database.repository import VocabularyRepository
+                        from bot.database.models import UserProgress
+                        current_topic = getattr(user, "current_topic", 1)
+                        vocab_repo = VocabularyRepository(session)
+                        words = await vocab_repo.get_words_for_topic(user.current_level, current_topic)
+                        pct = 0
+                        if words:
+                            ids = [w.word_id for w in words]
+                            r = await session.execute(
+                                select(sqlfunc.count(UserProgress.id)).where(and_(
+                                    UserProgress.user_id == user.user_id,
+                                    UserProgress.word_id.in_(ids),
+                                    UserProgress.mastery_level >= 3,
+                                ))
+                            )
+                            pct = int((r.scalar() or 0) / len(words) * 100)
+                        text = shijoat_pin_text(
+                            new_shijoat, user.current_level, current_topic, pct, user.subscription_tier
+                        )
                         await bot.edit_message_text(
                             text=text,
                             chat_id=user.user_id,

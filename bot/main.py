@@ -80,8 +80,12 @@ async def _auto_seed_vocabulary() -> None:
             max_topic = (await session.execute(
                 select(func.max(Vocabulary.topic_id))
             )).scalar() or 1
-            if has_religious or max_topic <= 1:
-                reason = "religious content" if has_religious else "no topic differentiation (old data)"
+            if has_religious or max_topic <= 1 or count < len(VOCABULARY):
+                reason = (
+                    "religious content" if has_religious
+                    else "no topic differentiation" if max_topic <= 1
+                    else f"word count mismatch ({count} vs {len(VOCABULARY)})"
+                )
                 await session.execute(delete(Vocabulary))
                 await session.commit()
                 logger.info(f"Wiped old vocabulary ({reason}) — re-seeding.")

@@ -16,9 +16,10 @@ def reply_main_kb() -> ReplyKeyboardMarkup:
     """Persistent keyboard shown at bottom of every chat screen."""
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text=KB_LESSON), KeyboardButton(text=KB_PROFILE)],
-            [KeyboardButton(text=KB_ROADMAP), KeyboardButton(text=KB_LEADERBOARD)],
-            [KeyboardButton(text=KB_PREMIUM), KeyboardButton(text=KB_SETTINGS)],
+            [KeyboardButton(text=KB_LESSON)],
+            [KeyboardButton(text=KB_PROFILE), KeyboardButton(text=KB_ROADMAP)],
+            [KeyboardButton(text=KB_LEADERBOARD), KeyboardButton(text=KB_PREMIUM)],
+            [KeyboardButton(text=KB_SETTINGS)],
         ],
         resize_keyboard=True,
         persistent=True,

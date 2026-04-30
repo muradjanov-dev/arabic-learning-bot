@@ -265,7 +265,7 @@ class ProgressRepository:
             select(
                 Vocabulary.level_id,
                 func.count(UserProgress.id).label("seen"),
-                func.sum(sa_case((UserProgress.mastery_level >= 4, 1), else_=0)).label("mastered"),
+                func.sum(sa_case((UserProgress.mastery_level >= 3, 1), else_=0)).label("mastered"),
             )
             .join(UserProgress, and_(
                 UserProgress.word_id == Vocabulary.word_id,

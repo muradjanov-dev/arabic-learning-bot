@@ -52,6 +52,6 @@ def next_question_kb() -> InlineKeyboardMarkup:
 
 def lesson_result_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📖 Yangi dars", callback_data="menu:lesson")],
+        [InlineKeyboardButton(text="▶️ Keyingi dars", callback_data="menu:lesson")],
         [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="menu:main")],
     ])

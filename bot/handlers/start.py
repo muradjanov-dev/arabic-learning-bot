@@ -4,22 +4,30 @@ from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, func
 
 from bot.config import settings
-from bot.database.models import ArabicLevel
-from bot.database.repository import UserRepository
+from bot.database.models import ArabicLevel, UserProgress
+from bot.database.repository import UserRepository, VocabularyRepository, ProgressRepository
 from bot.keyboards.main_kb import (
-    main_menu_kb, arabic_level_kb, back_to_menu_kb,
+    arabic_level_kb, back_to_menu_kb, roadmap_kb,
+    confirm_lesson_kb, upsell_kb,
     reply_main_kb, KB_LESSON, KB_PROFILE, KB_ROADMAP, KB_LEADERBOARD,
     KB_PREMIUM, KB_SETTINGS,
 )
-from bot.services.gamification import shijoat_pin_text, tier_display
+from bot.services.gamification import shijoat_pin_text, tier_display, LEVEL_TITLES, get_level_from_xp, LEVEL_NAMES
+from bot.services.lesson_service import TOTAL_PER_LESSON
 from bot.utils.messages import (
     WELCOME, ASK_NAME, ASK_AGE, ASK_ARABIC_LEVEL, REGISTRATION_DONE, MAIN_MENU,
     SUBSCRIPTION_INFO, PROFILE_TEXT,
+    LESSON_START_CONFIRM, NO_SHIJOAT,
+    ROADMAP_HEADER, ROADMAP_LEVEL_DONE, ROADMAP_LEVEL_CURRENT,
+    ROADMAP_LEVEL_NEXT, ROADMAP_LEVEL_LOCKED,
 )
 
 router = Router()
+
+MAX_LEVEL = 10
 
 
 class RegStates(StatesGroup):
@@ -30,9 +38,19 @@ class RegStates(StatesGroup):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+def _roadmap_bar(pct: int, width: int = 8) -> str:
+    filled = int(pct / 100 * width)
+    return "█" * filled + "░" * (width - filled)
+
+
 async def _pin_shijoat(message: Message, user, session: AsyncSession) -> None:
-    """Send and pin the shijoat status message; store its ID in the user row."""
-    text = shijoat_pin_text(user.shijoat_points, user.streak_days, user.subscription_tier)
+    text = shijoat_pin_text(
+        user.shijoat_points,
+        user.current_level,
+        getattr(user, "current_topic", 1),
+        0,
+        user.subscription_tier,
+    )
     try:
         pin_msg = await message.answer(text)
         await message.bot.pin_chat_message(
@@ -47,6 +65,66 @@ async def _pin_shijoat(message: Message, user, session: AsyncSession) -> None:
         pass
 
 
+async def _show_lesson_confirm(message: Message, user, session: AsyncSession) -> None:
+    if user.shijoat_points < settings.LESSON_SHIJOAT_COST:
+        await message.answer(NO_SHIJOAT, reply_markup=upsell_kb())
+        return
+
+    current_topic = getattr(user, "current_topic", 1)
+    vocab_repo = VocabularyRepository(session)
+    topic_words = await vocab_repo.get_words_for_topic(user.current_level, current_topic)
+    total_in_topic = max(len(topic_words), 1)
+
+    if topic_words:
+        ids = [w.word_id for w in topic_words]
+        r = await session.execute(
+            select(func.count(UserProgress.id)).where(and_(
+                UserProgress.user_id == user.user_id,
+                UserProgress.word_id.in_(ids),
+                UserProgress.mastery_level >= 3,
+            ))
+        )
+        mastered_in_topic = r.scalar() or 0
+    else:
+        mastered_in_topic = 0
+
+    progress_pct = int(mastered_in_topic / total_in_topic * 100)
+    text = LESSON_START_CONFIRM.format(
+        module=user.current_level,
+        topic=current_topic,
+        questions=TOTAL_PER_LESSON,
+        cost=settings.LESSON_SHIJOAT_COST,
+        shijoat=user.shijoat_points,
+        progress_pct=progress_pct,
+    )
+    await message.answer(text, reply_markup=confirm_lesson_kb(user.shijoat_points))
+
+
+async def _show_roadmap(message: Message, user, session: AsyncSession) -> None:
+    prog_repo = ProgressRepository(session)
+    level_progress = await prog_repo.get_progress_by_level(user.user_id)
+    current = user.current_level
+
+    text = ROADMAP_HEADER
+    for n in range(1, MAX_LEVEL + 1):
+        p = level_progress.get(n, {"total": 0, "seen": 0, "mastered": 0})
+        total = p["total"] or 1
+        pct = int(p["mastered"] / total * 100)
+        title = LEVEL_TITLES[n] if n < len(LEVEL_TITLES) else f"Daraja {n}"
+        bar = _roadmap_bar(pct)
+
+        if n < current:
+            text += ROADMAP_LEVEL_DONE.format(n=n, title=title, bar=bar, pct=pct)
+        elif n == current:
+            text += ROADMAP_LEVEL_CURRENT.format(n=n, title=title, bar=bar, pct=pct)
+        elif n == current + 1:
+            text += ROADMAP_LEVEL_NEXT.format(n=n, title=title)
+        else:
+            text += ROADMAP_LEVEL_LOCKED.format(n=n, title=title, prev=n - 1)
+
+    await message.answer(text, reply_markup=roadmap_kb())
+
+
 # ── /start ────────────────────────────────────────────────────────────────────
 
 @router.message(CommandStart())
@@ -54,8 +132,6 @@ async def cmd_start(message: Message, state: FSMContext, user, session: AsyncSes
     await state.clear()
     if user.is_registered:
         await message.answer(MAIN_MENU, reply_markup=reply_main_kb())
-        await message.answer("👇", reply_markup=main_menu_kb())
-        # Re-pin shijoat if missing
         if not user.shijoat_pin_id:
             await _pin_shijoat(message, user, session)
         return
@@ -118,9 +194,7 @@ async def reg_arabic_level(callback: CallbackQuery, state: FSMContext, user, ses
 
     await callback.message.edit_text(REGISTRATION_DONE.format(level=start_level))
     await callback.message.answer(MAIN_MENU, reply_markup=reply_main_kb())
-    await callback.message.answer("👇", reply_markup=main_menu_kb())
 
-    # Refresh user to get updated data, then pin shijoat
     updated = await repo.get(user.user_id)
     if updated:
         await _pin_shijoat(callback.message, updated, session)
@@ -135,19 +209,19 @@ async def menu_main(callback: CallbackQuery, state: FSMContext, user):
         await callback.answer("Avval ro'yxatdan o'ting!", show_alert=True)
         return
     await state.clear()
-    await callback.message.edit_text(MAIN_MENU, reply_markup=main_menu_kb())
+    await callback.message.edit_text(MAIN_MENU)
     await callback.answer()
 
 
 # ── Reply keyboard button handlers ───────────────────────────────────────────
 
 @router.message(F.text == KB_LESSON)
-async def kb_lesson(message: Message, state: FSMContext, user):
+async def kb_lesson(message: Message, state: FSMContext, user, session: AsyncSession):
     if not user.is_registered:
         await message.answer("Avval /start orqali ro'yxatdan o'ting.")
         return
     await state.clear()
-    await message.answer("📖 Dars boshlash:", reply_markup=main_menu_kb())
+    await _show_lesson_confirm(message, user, session)
 
 
 @router.message(F.text == KB_PROFILE)
@@ -155,14 +229,10 @@ async def kb_profile(message: Message, user, session: AsyncSession):
     if not user.is_registered:
         await message.answer("Avval /start orqali ro'yxatdan o'ting.")
         return
-    from bot.database.repository import ProgressRepository
-    from bot.services.gamification import LEVEL_TITLES, ACHIEVEMENTS, get_level_from_xp
-    from bot.utils.messages import PROFILE_TEXT
 
     prog_repo = ProgressRepository(session)
     mastered = await prog_repo.count_mastered(user.user_id)
     xp_level = get_level_from_xp(user.current_xp)
-    from bot.services.gamification import LEVEL_NAMES
     arabic_map = {"beginner": "Yangi boshlovchi", "elementary": "O'rta", "intermediate": "Ilg'or"}
     text = PROFILE_TEXT.format(
         name=user.full_name or "Noma'lum",
@@ -183,8 +253,7 @@ async def kb_roadmap(message: Message, user, session: AsyncSession):
     if not user.is_registered:
         await message.answer("Avval /start orqali ro'yxatdan o'ting.")
         return
-    # Trigger the inline roadmap view by sending an inline menu
-    await message.answer(MAIN_MENU, reply_markup=main_menu_kb())
+    await _show_roadmap(message, user, session)
 
 
 @router.message(F.text == KB_LEADERBOARD)
@@ -234,24 +303,38 @@ async def cmd_menu(message: Message, state: FSMContext, user):
         return
     await state.clear()
     await message.answer(MAIN_MENU, reply_markup=reply_main_kb())
-    await message.answer("👇", reply_markup=main_menu_kb())
 
 
 @router.message(Command("lesson"))
-async def cmd_lesson(message: Message, state: FSMContext, user):
+async def cmd_lesson(message: Message, state: FSMContext, user, session: AsyncSession):
     if not user.is_registered:
         await message.answer("Avval /start orqali ro'yxatdan o'ting.")
         return
     await state.clear()
-    await message.answer("📖 Dars boshlash:", reply_markup=main_menu_kb())
+    await _show_lesson_confirm(message, user, session)
 
 
 @router.message(Command("profile"))
-async def cmd_profile(message: Message, user):
+async def cmd_profile(message: Message, user, session: AsyncSession):
     if not user.is_registered:
         await message.answer("Avval /start orqali ro'yxatdan o'ting.")
         return
-    await message.answer(MAIN_MENU, reply_markup=main_menu_kb())
+    prog_repo = ProgressRepository(session)
+    mastered = await prog_repo.count_mastered(user.user_id)
+    xp_level = get_level_from_xp(user.current_xp)
+    arabic_map = {"beginner": "Yangi boshlovchi", "elementary": "O'rta", "intermediate": "Ilg'or"}
+    text = PROFILE_TEXT.format(
+        name=user.full_name or "Noma'lum",
+        age=user.age or "—",
+        arabic_level=arabic_map.get(user.arabic_level.value, "—"),
+        level=user.current_level,
+        xp=f"{user.current_xp} ({LEVEL_NAMES[min(xp_level, 10)]})",
+        streak=user.streak_days,
+        shijoat=user.shijoat_points,
+        tier=tier_display(user.subscription_tier),
+        mastered=mastered,
+    )
+    await message.answer(text, reply_markup=back_to_menu_kb())
 
 
 @router.message(Command("subscription"))

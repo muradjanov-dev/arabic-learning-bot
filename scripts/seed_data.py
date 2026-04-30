@@ -13,31 +13,72 @@ from sqlalchemy import select
 
 VOCABULARY = [
     # ══════════════════════════════════════════════════════════════
-    # MODULE 1 — Alifbo (1-chi qism): 12 ta so'z, 2 mavzu
+    # MODULE 1 — Alifbo (1-chi qism): ~42 ta so'z, 6 mavzu
+    # Maqsad: foydalanuvchi 3-4 soat sarf qilsin
     # ══════════════════════════════════════════════════════════════
 
-    # Mavzu 1: Harflar ا-ح (6 ta)
+    # Mavzu 1: Harflar ا-خ (7 ta harf)
     {"level_id": 1, "topic_id": 1, "arabic_word": "ا", "uzbek_translation": "Alif harfi", "transliteration": "alif", "category": "harf"},
     {"level_id": 1, "topic_id": 1, "arabic_word": "ب", "uzbek_translation": "Ba harfi", "transliteration": "ba", "category": "harf"},
     {"level_id": 1, "topic_id": 1, "arabic_word": "ت", "uzbek_translation": "Ta harfi", "transliteration": "ta", "category": "harf"},
     {"level_id": 1, "topic_id": 1, "arabic_word": "ث", "uzbek_translation": "Sa harfi", "transliteration": "sa", "category": "harf"},
     {"level_id": 1, "topic_id": 1, "arabic_word": "ج", "uzbek_translation": "Jim harfi", "transliteration": "jim", "category": "harf"},
     {"level_id": 1, "topic_id": 1, "arabic_word": "ح", "uzbek_translation": "Ha harfi", "transliteration": "ha", "category": "harf"},
+    {"level_id": 1, "topic_id": 1, "arabic_word": "خ", "uzbek_translation": "Xa harfi", "transliteration": "kha", "category": "harf"},
 
-    # Mavzu 2: Xa harfi + birinchi so'zlar (6 ta)
-    {"level_id": 1, "topic_id": 2, "arabic_word": "خ", "uzbek_translation": "Xa harfi", "transliteration": "kha", "category": "harf"},
+    # Mavzu 2: Birinchi so'zlar — eshik, taom, tabiat (7 ta)
     {"level_id": 1, "topic_id": 2, "arabic_word": "بَابٌ", "uzbek_translation": "🚪 Eshik", "transliteration": "baab", "category": "soz",
      "example_sentence_arabic": "هَذَا بَابٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta eshik"},
     {"level_id": 1, "topic_id": 2, "arabic_word": "تَمْرٌ", "uzbek_translation": "🌴 Xurmo", "transliteration": "tamr", "category": "soz"},
     {"level_id": 1, "topic_id": 2, "arabic_word": "جَبَلٌ", "uzbek_translation": "⛰️ Tog'", "transliteration": "jabal", "category": "soz"},
     {"level_id": 1, "topic_id": 2, "arabic_word": "حَجَرٌ", "uzbek_translation": "🪨 Tosh", "transliteration": "hajar", "category": "soz"},
     {"level_id": 1, "topic_id": 2, "arabic_word": "خُبْزٌ", "uzbek_translation": "🍞 Non", "transliteration": "khubz", "category": "soz"},
+    {"level_id": 1, "topic_id": 2, "arabic_word": "أَبٌ", "uzbek_translation": "👨 Ota", "transliteration": "ab", "category": "soz",
+     "example_sentence_arabic": "هَذَا أَبِي", "example_sentence_uzbek": "Bu mening otam"},
+    {"level_id": 1, "topic_id": 2, "arabic_word": "أُمٌّ", "uzbek_translation": "👩 Ona", "transliteration": "umm", "category": "soz",
+     "example_sentence_arabic": "هَذِهِ أُمِّي", "example_sentence_uzbek": "Bu mening onam"},
+
+    # Mavzu 3: Jism a'zolari (7 ta)
+    {"level_id": 1, "topic_id": 3, "arabic_word": "رَأْسٌ", "uzbek_translation": "🗣️ Bosh", "transliteration": "ra's", "category": "soz"},
+    {"level_id": 1, "topic_id": 3, "arabic_word": "عَيْنٌ", "uzbek_translation": "👁️ Ko'z", "transliteration": "ayn", "category": "soz"},
+    {"level_id": 1, "topic_id": 3, "arabic_word": "أَنْفٌ", "uzbek_translation": "👃 Burun", "transliteration": "anf", "category": "soz"},
+    {"level_id": 1, "topic_id": 3, "arabic_word": "يَدٌ", "uzbek_translation": "✋ Qo'l", "transliteration": "yad", "category": "soz"},
+    {"level_id": 1, "topic_id": 3, "arabic_word": "رِجْلٌ", "uzbek_translation": "🦵 Oyoq", "transliteration": "rijl", "category": "soz"},
+    {"level_id": 1, "topic_id": 3, "arabic_word": "أُذُنٌ", "uzbek_translation": "👂 Quloq", "transliteration": "uzun", "category": "soz"},
+    {"level_id": 1, "topic_id": 3, "arabic_word": "فَمٌ", "uzbek_translation": "👄 Og'iz", "transliteration": "fam", "category": "soz"},
+
+    # Mavzu 4: Ranglar (7 ta)
+    {"level_id": 1, "topic_id": 4, "arabic_word": "أَحْمَرُ", "uzbek_translation": "🔴 Qizil", "transliteration": "ahmar", "category": "soz"},
+    {"level_id": 1, "topic_id": 4, "arabic_word": "أَزْرَقُ", "uzbek_translation": "🔵 Ko'k", "transliteration": "azraq", "category": "soz"},
+    {"level_id": 1, "topic_id": 4, "arabic_word": "أَخْضَرُ", "uzbek_translation": "🟢 Yashil", "transliteration": "akhdar", "category": "soz"},
+    {"level_id": 1, "topic_id": 4, "arabic_word": "أَصْفَرُ", "uzbek_translation": "🟡 Sariq", "transliteration": "asfar", "category": "soz"},
+    {"level_id": 1, "topic_id": 4, "arabic_word": "أَبْيَضُ", "uzbek_translation": "⬜ Oq", "transliteration": "abyad", "category": "soz"},
+    {"level_id": 1, "topic_id": 4, "arabic_word": "أَسْوَدُ", "uzbek_translation": "⬛ Qora", "transliteration": "aswad", "category": "soz"},
+    {"level_id": 1, "topic_id": 4, "arabic_word": "بُرْتُقَالِيٌّ", "uzbek_translation": "🟠 To'q sariq", "transliteration": "burtuqaali", "category": "soz"},
+
+    # Mavzu 5: Hayvonlar (7 ta)
+    {"level_id": 1, "topic_id": 5, "arabic_word": "أَسَدٌ", "uzbek_translation": "🦁 Sher", "transliteration": "asad", "category": "soz"},
+    {"level_id": 1, "topic_id": 5, "arabic_word": "فِيلٌ", "uzbek_translation": "🐘 Fil", "transliteration": "fiil", "category": "soz"},
+    {"level_id": 1, "topic_id": 5, "arabic_word": "حِصَانٌ", "uzbek_translation": "🐴 Ot", "transliteration": "hisaan", "category": "soz"},
+    {"level_id": 1, "topic_id": 5, "arabic_word": "بَقَرَةٌ", "uzbek_translation": "🐄 Sigir", "transliteration": "baqara", "category": "soz"},
+    {"level_id": 1, "topic_id": 5, "arabic_word": "قِطٌّ", "uzbek_translation": "🐱 Mushuk", "transliteration": "qitt", "category": "soz"},
+    {"level_id": 1, "topic_id": 5, "arabic_word": "كَلْبٌ", "uzbek_translation": "🐶 It", "transliteration": "kalb", "category": "soz"},
+    {"level_id": 1, "topic_id": 5, "arabic_word": "عُصْفُورٌ", "uzbek_translation": "🐦 Chumchuq", "transliteration": "usfuur", "category": "soz"},
+
+    # Mavzu 6: Raqamlar 1-7 (7 ta)
+    {"level_id": 1, "topic_id": 6, "arabic_word": "وَاحِدٌ", "uzbek_translation": "1️⃣ Bir", "transliteration": "waahid", "category": "soz"},
+    {"level_id": 1, "topic_id": 6, "arabic_word": "اثْنَانِ", "uzbek_translation": "2️⃣ Ikki", "transliteration": "ithnaan", "category": "soz"},
+    {"level_id": 1, "topic_id": 6, "arabic_word": "ثَلَاثَةٌ", "uzbek_translation": "3️⃣ Uch", "transliteration": "thalaatha", "category": "soz"},
+    {"level_id": 1, "topic_id": 6, "arabic_word": "أَرْبَعَةٌ", "uzbek_translation": "4️⃣ To'rt", "transliteration": "arba'a", "category": "soz"},
+    {"level_id": 1, "topic_id": 6, "arabic_word": "خَمْسَةٌ", "uzbek_translation": "5️⃣ Besh", "transliteration": "khamsa", "category": "soz"},
+    {"level_id": 1, "topic_id": 6, "arabic_word": "سِتَّةٌ", "uzbek_translation": "6️⃣ Olti", "transliteration": "sitta", "category": "soz"},
+    {"level_id": 1, "topic_id": 6, "arabic_word": "سَبْعَةٌ", "uzbek_translation": "7️⃣ Yetti", "transliteration": "sab'a", "category": "soz"},
 
     # ══════════════════════════════════════════════════════════════
-    # MODULE 2 — Alifbo (2-chi qism): 28 ta so'z, 2 mavzu
+    # MODULE 2 — Alifbo (2-chi qism): ~42 ta so'z, 4 mavzu
     # ══════════════════════════════════════════════════════════════
 
-    # Mavzu 1: Harflar د-ق (14 ta)
+    # Mavzu 1: Harflar د-ق (7 ta)
     {"level_id": 2, "topic_id": 1, "arabic_word": "د", "uzbek_translation": "Dal harfi", "transliteration": "dal", "category": "harf"},
     {"level_id": 2, "topic_id": 1, "arabic_word": "ذ", "uzbek_translation": "Zal harfi", "transliteration": "zal", "category": "harf"},
     {"level_id": 2, "topic_id": 1, "arabic_word": "ر", "uzbek_translation": "Ra harfi", "transliteration": "ra", "category": "harf"},
@@ -45,36 +86,41 @@ VOCABULARY = [
     {"level_id": 2, "topic_id": 1, "arabic_word": "س", "uzbek_translation": "Sin harfi", "transliteration": "sin", "category": "harf"},
     {"level_id": 2, "topic_id": 1, "arabic_word": "ش", "uzbek_translation": "Shin harfi", "transliteration": "shin", "category": "harf"},
     {"level_id": 2, "topic_id": 1, "arabic_word": "ص", "uzbek_translation": "Sod harfi", "transliteration": "sad", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "ض", "uzbek_translation": "Zod harfi", "transliteration": "dad", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "ط", "uzbek_translation": "To' harfi", "transliteration": "ta mufakhkhama", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "ظ", "uzbek_translation": "Zo' harfi", "transliteration": "za mufakhkhama", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "ع", "uzbek_translation": "Ayn harfi", "transliteration": "ayn", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "غ", "uzbek_translation": "G'ayn harfi", "transliteration": "ghain", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "ف", "uzbek_translation": "Fa harfi", "transliteration": "fa", "category": "harf"},
-    {"level_id": 2, "topic_id": 1, "arabic_word": "ق", "uzbek_translation": "Qof harfi", "transliteration": "qaf", "category": "harf"},
 
-    # Mavzu 2: Tabiiy va kundalik so'zlar (14 ta)
-    {"level_id": 2, "topic_id": 2, "arabic_word": "دَارٌ", "uzbek_translation": "🏡 Katta uy", "transliteration": "daar", "category": "soz",
+    # Mavzu 2: Harflar ض-ق (7 ta)
+    {"level_id": 2, "topic_id": 2, "arabic_word": "ض", "uzbek_translation": "Zod harfi", "transliteration": "dad", "category": "harf"},
+    {"level_id": 2, "topic_id": 2, "arabic_word": "ط", "uzbek_translation": "To' harfi", "transliteration": "ta mufakhkhama", "category": "harf"},
+    {"level_id": 2, "topic_id": 2, "arabic_word": "ظ", "uzbek_translation": "Zo' harfi", "transliteration": "za mufakhkhama", "category": "harf"},
+    {"level_id": 2, "topic_id": 2, "arabic_word": "ع", "uzbek_translation": "Ayn harfi", "transliteration": "ayn", "category": "harf"},
+    {"level_id": 2, "topic_id": 2, "arabic_word": "غ", "uzbek_translation": "G'ayn harfi", "transliteration": "ghain", "category": "harf"},
+    {"level_id": 2, "topic_id": 2, "arabic_word": "ف", "uzbek_translation": "Fa harfi", "transliteration": "fa", "category": "harf"},
+    {"level_id": 2, "topic_id": 2, "arabic_word": "ق", "uzbek_translation": "Qof harfi", "transliteration": "qaf", "category": "harf"},
+
+    # Mavzu 3: Tabiat va kundalik (7 ta)
+    {"level_id": 2, "topic_id": 3, "arabic_word": "دَارٌ", "uzbek_translation": "🏡 Katta uy", "transliteration": "daar", "category": "soz",
      "example_sentence_arabic": "هَذِهِ دَارٌ جَمِيلَةٌ", "example_sentence_uzbek": "Bu chiroyli katta uy"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "ذَهَبٌ", "uzbek_translation": "✨ Oltin", "transliteration": "zahab", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "رَأْسٌ", "uzbek_translation": "🗣️ Bosh", "transliteration": "ra's", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "زَهْرَةٌ", "uzbek_translation": "🌸 Gul", "transliteration": "zahra", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "سَمَكٌ", "uzbek_translation": "🐟 Baliq", "transliteration": "samak", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "شَجَرَةٌ", "uzbek_translation": "🌳 Daraxt", "transliteration": "shajara", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "صَخْرَةٌ", "uzbek_translation": "🪨 Qoya", "transliteration": "sakhrah", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "ضَوْءٌ", "uzbek_translation": "💡 Nur / Yorug'lik", "transliteration": "daw'", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "طَيْرٌ", "uzbek_translation": "🐦 Qush", "transliteration": "tayr", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "ظِلٌّ", "uzbek_translation": "🌑 Soya", "transliteration": "zill", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "عَيْنٌ", "uzbek_translation": "👁️ Ko'z", "transliteration": "ayn", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "غَابَةٌ", "uzbek_translation": "🌲 O'rmon", "transliteration": "ghaaba", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "فَأْرٌ", "uzbek_translation": "🐭 Sichqon", "transliteration": "fa'r", "category": "soz"},
-    {"level_id": 2, "topic_id": 2, "arabic_word": "قَمَرٌ", "uzbek_translation": "🌙 Oy (osmon)", "transliteration": "qamar", "category": "soz"},
+    {"level_id": 2, "topic_id": 3, "arabic_word": "زَهْرَةٌ", "uzbek_translation": "🌸 Gul", "transliteration": "zahra", "category": "soz"},
+    {"level_id": 2, "topic_id": 3, "arabic_word": "سَمَكٌ", "uzbek_translation": "🐟 Baliq", "transliteration": "samak", "category": "soz"},
+    {"level_id": 2, "topic_id": 3, "arabic_word": "شَجَرَةٌ", "uzbek_translation": "🌳 Daraxt", "transliteration": "shajara", "category": "soz"},
+    {"level_id": 2, "topic_id": 3, "arabic_word": "طَيْرٌ", "uzbek_translation": "🐦 Qush", "transliteration": "tayr", "category": "soz"},
+    {"level_id": 2, "topic_id": 3, "arabic_word": "قَمَرٌ", "uzbek_translation": "🌙 Oy (osmon)", "transliteration": "qamar", "category": "soz"},
+    {"level_id": 2, "topic_id": 3, "arabic_word": "ضَوْءٌ", "uzbek_translation": "💡 Nur / Yorug'lik", "transliteration": "daw'", "category": "soz"},
+
+    # Mavzu 4: Odamlar va narsalar (7 ta)
+    {"level_id": 2, "topic_id": 4, "arabic_word": "رَجُلٌ", "uzbek_translation": "👨 Erkak", "transliteration": "rajul", "category": "soz"},
+    {"level_id": 2, "topic_id": 4, "arabic_word": "صَدِيقٌ", "uzbek_translation": "🤝 Do'st", "transliteration": "sadiiq", "category": "soz",
+     "example_sentence_arabic": "هُوَ صَدِيقِي", "example_sentence_uzbek": "U mening do'stim"},
+    {"level_id": 2, "topic_id": 4, "arabic_word": "طِفْلٌ", "uzbek_translation": "👶 Bola", "transliteration": "tifl", "category": "soz"},
+    {"level_id": 2, "topic_id": 4, "arabic_word": "ذَهَبٌ", "uzbek_translation": "✨ Oltin", "transliteration": "zahab", "category": "soz"},
+    {"level_id": 2, "topic_id": 4, "arabic_word": "غَابَةٌ", "uzbek_translation": "🌲 O'rmon", "transliteration": "ghaaba", "category": "soz"},
+    {"level_id": 2, "topic_id": 4, "arabic_word": "ظِلٌّ", "uzbek_translation": "🌑 Soya", "transliteration": "zill", "category": "soz"},
+    {"level_id": 2, "topic_id": 4, "arabic_word": "صَخْرَةٌ", "uzbek_translation": "🪨 Qoya", "transliteration": "sakhrah", "category": "soz"},
 
     # ══════════════════════════════════════════════════════════════
-    # MODULE 3 — Alifbo (3-chi qism) + Maktab + Uy: 42 ta so'z, 3 mavzu
+    # MODULE 3 — Alifbo (3-chi qism) + Maktab + Uy + Tabiat: 5 mavzu
     # ══════════════════════════════════════════════════════════════
 
-    # Mavzu 1: Harflar ك-ي va maxsus belgilar (14 ta)
+    # Mavzu 1: Harflar ك-ي va maxsus belgilar (7 ta)
     {"level_id": 3, "topic_id": 1, "arabic_word": "ك", "uzbek_translation": "Kof harfi", "transliteration": "kaf", "category": "harf"},
     {"level_id": 3, "topic_id": 1, "arabic_word": "ل", "uzbek_translation": "Lom harfi", "transliteration": "lam", "category": "harf"},
     {"level_id": 3, "topic_id": 1, "arabic_word": "م", "uzbek_translation": "Mim harfi", "transliteration": "mim", "category": "harf"},
@@ -82,50 +128,47 @@ VOCABULARY = [
     {"level_id": 3, "topic_id": 1, "arabic_word": "و", "uzbek_translation": "Vov harfi", "transliteration": "waw", "category": "harf"},
     {"level_id": 3, "topic_id": 1, "arabic_word": "ه", "uzbek_translation": "Ha' harfi", "transliteration": "ha'", "category": "harf"},
     {"level_id": 3, "topic_id": 1, "arabic_word": "ي", "uzbek_translation": "Ya harfi", "transliteration": "ya", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "لا", "uzbek_translation": "Lom-Alif (maxsus shakl)", "transliteration": "lam-alif", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "ء", "uzbek_translation": "Hamza harfi", "transliteration": "hamza", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "آ", "uzbek_translation": "Alif Madd — uzun 'aa'", "transliteration": "alif madd", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "أ", "uzbek_translation": "Hamza alif ustida", "transliteration": "hamzat al-qat'", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "إ", "uzbek_translation": "Hamza alif ostida", "transliteration": "hamza kasriyya", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "ؤ", "uzbek_translation": "Hamza vov ustida", "transliteration": "hamza 'ala waw", "category": "harf"},
-    {"level_id": 3, "topic_id": 1, "arabic_word": "ئ", "uzbek_translation": "Hamza ya ustida", "transliteration": "hamza 'ala ya", "category": "harf"},
 
-    # Mavzu 2: Maktab so'zlari (14 ta)
-    {"level_id": 3, "topic_id": 2, "arabic_word": "كِتَابٌ", "uzbek_translation": "📚 Kitob", "transliteration": "kitaab", "category": "soz",
+    # Mavzu 2: Maxsus harflar va hamzalar (7 ta)
+    {"level_id": 3, "topic_id": 2, "arabic_word": "لا", "uzbek_translation": "Lom-Alif (maxsus shakl)", "transliteration": "lam-alif", "category": "harf"},
+    {"level_id": 3, "topic_id": 2, "arabic_word": "ء", "uzbek_translation": "Hamza harfi", "transliteration": "hamza", "category": "harf"},
+    {"level_id": 3, "topic_id": 2, "arabic_word": "آ", "uzbek_translation": "Alif Madd — uzun 'aa'", "transliteration": "alif madd", "category": "harf"},
+    {"level_id": 3, "topic_id": 2, "arabic_word": "أ", "uzbek_translation": "Hamza alif ustida", "transliteration": "hamzat al-qat'", "category": "harf"},
+    {"level_id": 3, "topic_id": 2, "arabic_word": "إ", "uzbek_translation": "Hamza alif ostida", "transliteration": "hamza kasriyya", "category": "harf"},
+    {"level_id": 3, "topic_id": 2, "arabic_word": "ؤ", "uzbek_translation": "Hamza vov ustida", "transliteration": "hamza 'ala waw", "category": "harf"},
+    {"level_id": 3, "topic_id": 2, "arabic_word": "ئ", "uzbek_translation": "Hamza ya ustida", "transliteration": "hamza 'ala ya", "category": "harf"},
+
+    # Mavzu 3: Maktab so'zlari (7 ta)
+    {"level_id": 3, "topic_id": 3, "arabic_word": "كِتَابٌ", "uzbek_translation": "📚 Kitob", "transliteration": "kitaab", "category": "soz",
      "example_sentence_arabic": "هَذَا كِتَابٌ جَدِيدٌ", "example_sentence_uzbek": "Bu yangi kitob"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "قَلَمٌ", "uzbek_translation": "✏️ Qalam", "transliteration": "qalam", "category": "soz",
+    {"level_id": 3, "topic_id": 3, "arabic_word": "قَلَمٌ", "uzbek_translation": "✏️ Qalam", "transliteration": "qalam", "category": "soz",
      "example_sentence_arabic": "هَذَا قَلَمٌ أَحْمَرُ", "example_sentence_uzbek": "Bu qizil qalam"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "مَدْرَسَةٌ", "uzbek_translation": "🏫 Maktab", "transliteration": "madrasa", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "فَصْلٌ", "uzbek_translation": "🏛️ Sinf xonasi", "transliteration": "fasl", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "مُعَلِّمٌ", "uzbek_translation": "👨‍🏫 O'qituvchi", "transliteration": "mu'allim", "category": "soz",
+    {"level_id": 3, "topic_id": 3, "arabic_word": "مَدْرَسَةٌ", "uzbek_translation": "🏫 Maktab", "transliteration": "madrasa", "category": "soz"},
+    {"level_id": 3, "topic_id": 3, "arabic_word": "مُعَلِّمٌ", "uzbek_translation": "👨‍🏫 O'qituvchi", "transliteration": "mu'allim", "category": "soz",
      "example_sentence_arabic": "الْمُعَلِّمُ فِي الْفَصْلِ", "example_sentence_uzbek": "O'qituvchi sinfda"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "طَالِبٌ", "uzbek_translation": "🎒 O'quvchi", "transliteration": "taalib", "category": "soz",
+    {"level_id": 3, "topic_id": 3, "arabic_word": "طَالِبٌ", "uzbek_translation": "🎒 O'quvchi", "transliteration": "taalib", "category": "soz",
      "example_sentence_arabic": "هُوَ طَالِبٌ مُجْتَهِدٌ", "example_sentence_uzbek": "U tirishqoq o'quvchi"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "مَكْتَبٌ", "uzbek_translation": "🗄️ Yozuv stoli", "transliteration": "maktab", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "كُرْسِيٌّ", "uzbek_translation": "🪑 Stul", "transliteration": "kursi", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "سَبُّورَةٌ", "uzbek_translation": "🖊️ Doska", "transliteration": "sabboora", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "حَقِيبَةٌ", "uzbek_translation": "🎒 Maktab sumkasi", "transliteration": "haqiiba", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "مِسْطَرَةٌ", "uzbek_translation": "📏 Chizg'ich", "transliteration": "mistara", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "دَفْتَرٌ", "uzbek_translation": "📓 Daftar", "transliteration": "daftar", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "قَامُوسٌ", "uzbek_translation": "📖 Lug'at", "transliteration": "qaamuus", "category": "soz"},
-    {"level_id": 3, "topic_id": 2, "arabic_word": "مِمْسَحَةٌ", "uzbek_translation": "🧽 O'chirg'ich", "transliteration": "mimsaha", "category": "soz"},
+    {"level_id": 3, "topic_id": 3, "arabic_word": "دَفْتَرٌ", "uzbek_translation": "📓 Daftar", "transliteration": "daftar", "category": "soz"},
+    {"level_id": 3, "topic_id": 3, "arabic_word": "سَبُّورَةٌ", "uzbek_translation": "🖊️ Doska", "transliteration": "sabboora", "category": "soz"},
 
-    # Mavzu 3: Uy so'zlari (14 ta)
-    {"level_id": 3, "topic_id": 3, "arabic_word": "بَيْتٌ", "uzbek_translation": "🏠 Uy", "transliteration": "bayt", "category": "soz",
+    # Mavzu 4: Uy so'zlari (7 ta)
+    {"level_id": 3, "topic_id": 4, "arabic_word": "بَيْتٌ", "uzbek_translation": "🏠 Uy", "transliteration": "bayt", "category": "soz",
      "example_sentence_arabic": "هَذَا بَيْتٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta uy"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "شُبَّاكٌ", "uzbek_translation": "🪟 Deraza", "transliteration": "shubbak", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "مَطْبَخٌ", "uzbek_translation": "🍳 Oshxona", "transliteration": "matbakh", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "حَمَّامٌ", "uzbek_translation": "🚿 Hammom", "transliteration": "hammam", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "غُرْفَةٌ", "uzbek_translation": "🛏️ Xona", "transliteration": "ghurfa", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "سَقْفٌ", "uzbek_translation": "🏗️ Shift", "transliteration": "saqf", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "جِدَارٌ", "uzbek_translation": "🧱 Devor", "transliteration": "jidaar", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "سُلَّمٌ", "uzbek_translation": "🪜 Narvon", "transliteration": "sullam", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "مِفْتَاحٌ", "uzbek_translation": "🔑 Kalit", "transliteration": "miftaah", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "طَاوِلَةٌ", "uzbek_translation": "🍽️ Ovqat stoli", "transliteration": "taawila", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "مَجْلِسٌ", "uzbek_translation": "🛋️ Mehmonxona", "transliteration": "majlis", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "مِرْآةٌ", "uzbek_translation": "🪞 Ko'zgu", "transliteration": "mir'aa", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "ثَلَّاجَةٌ", "uzbek_translation": "🧊 Muzlatgich", "transliteration": "thallaaja", "category": "soz"},
-    {"level_id": 3, "topic_id": 3, "arabic_word": "لَمْبَةٌ", "uzbek_translation": "💡 Chiroq", "transliteration": "lamba", "category": "soz"},
+    {"level_id": 3, "topic_id": 4, "arabic_word": "مَطْبَخٌ", "uzbek_translation": "🍳 Oshxona", "transliteration": "matbakh", "category": "soz"},
+    {"level_id": 3, "topic_id": 4, "arabic_word": "غُرْفَةٌ", "uzbek_translation": "🛏️ Xona", "transliteration": "ghurfa", "category": "soz"},
+    {"level_id": 3, "topic_id": 4, "arabic_word": "مِفْتَاحٌ", "uzbek_translation": "🔑 Kalit", "transliteration": "miftaah", "category": "soz"},
+    {"level_id": 3, "topic_id": 4, "arabic_word": "نَافِذَةٌ", "uzbek_translation": "🪟 Deraza", "transliteration": "naafiза", "category": "soz"},
+    {"level_id": 3, "topic_id": 4, "arabic_word": "كُرْسِيٌّ", "uzbek_translation": "🪑 Stul", "transliteration": "kursi", "category": "soz"},
+    {"level_id": 3, "topic_id": 4, "arabic_word": "مِصْبَاحٌ", "uzbek_translation": "💡 Chiroq", "transliteration": "misbaaH", "category": "soz"},
+
+    # Mavzu 5: Tabiiyat va ob-havo (7 ta)
+    {"level_id": 3, "topic_id": 5, "arabic_word": "بَحْرٌ", "uzbek_translation": "🌊 Dengiz", "transliteration": "bahr", "category": "soz"},
+    {"level_id": 3, "topic_id": 5, "arabic_word": "نَهْرٌ", "uzbek_translation": "🏞️ Daryo", "transliteration": "nahr", "category": "soz"},
+    {"level_id": 3, "topic_id": 5, "arabic_word": "مَطَرٌ", "uzbek_translation": "🌧️ Yomg'ir", "transliteration": "matar", "category": "soz"},
+    {"level_id": 3, "topic_id": 5, "arabic_word": "ثَلْجٌ", "uzbek_translation": "❄️ Qor", "transliteration": "thalj", "category": "soz"},
+    {"level_id": 3, "topic_id": 5, "arabic_word": "هَوَاءٌ", "uzbek_translation": "💨 Havo", "transliteration": "hawaa", "category": "soz"},
+    {"level_id": 3, "topic_id": 5, "arabic_word": "وَرْدَةٌ", "uzbek_translation": "🌹 Atirgul", "transliteration": "warda", "category": "soz"},
+    {"level_id": 3, "topic_id": 5, "arabic_word": "عُشْبٌ", "uzbek_translation": "🌿 O't / Maysazor", "transliteration": "ushb", "category": "soz"},
 
     # ══════════════════════════════════════════════════════════════
     # MODULE 4 — Harakatlar (unli belgilari): 1 mavzu
@@ -144,19 +187,16 @@ VOCABULARY = [
     # ══════════════════════════════════════════════════════════════
     # MODULE 5 — Oddiy so'zlar (1): 1 mavzu
     # ══════════════════════════════════════════════════════════════
-    {"level_id": 5, "topic_id": 1, "arabic_word": "كِتَابٌ", "uzbek_translation": "📚 Kitob", "transliteration": "kitaab", "category": "soz",
-     "example_sentence_arabic": "هَذَا كِتَابٌ جَدِيدٌ", "example_sentence_uzbek": "Bu yangi kitob"},
-    {"level_id": 5, "topic_id": 1, "arabic_word": "قَلَمٌ", "uzbek_translation": "✏️ Qalam", "transliteration": "qalam", "category": "soz",
-     "example_sentence_arabic": "هَذَا قَلَمٌ أَحْمَرُ", "example_sentence_uzbek": "Bu qizil qalam"},
-    {"level_id": 5, "topic_id": 1, "arabic_word": "بَيْتٌ", "uzbek_translation": "🏠 Uy", "transliteration": "bayt", "category": "soz",
-     "example_sentence_arabic": "هَذَا بَيْتٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta uy"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "شَجَرَةٌ", "uzbek_translation": "🌳 Daraxt", "transliteration": "shajara", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "سَمَاءٌ", "uzbek_translation": "🌤️ Osmon", "transliteration": "samaa", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "أَرْضٌ", "uzbek_translation": "🌍 Yer / Zamin", "transliteration": "ard", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "مَاءٌ", "uzbek_translation": "💧 Suv", "transliteration": "maa", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "نَارٌ", "uzbek_translation": "🔥 Olov", "transliteration": "naar", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "شَمْسٌ", "uzbek_translation": "☀️ Quyosh", "transliteration": "shams", "category": "soz"},
-    {"level_id": 5, "topic_id": 1, "arabic_word": "قِطٌّ", "uzbek_translation": "🐱 Mushuk", "transliteration": "qitt", "category": "soz"},
+    {"level_id": 5, "topic_id": 1, "arabic_word": "رِيحٌ", "uzbek_translation": "🌬️ Shamol", "transliteration": "riih", "category": "soz"},
+    {"level_id": 5, "topic_id": 1, "arabic_word": "لَيْلٌ", "uzbek_translation": "🌙 Kecha / Tun", "transliteration": "layl", "category": "soz"},
+    {"level_id": 5, "topic_id": 1, "arabic_word": "نَهَارٌ", "uzbek_translation": "☀️ Kunduz", "transliteration": "nahaar", "category": "soz"},
+    {"level_id": 5, "topic_id": 1, "arabic_word": "وَقْتٌ", "uzbek_translation": "⏰ Vaqt", "transliteration": "waqt", "category": "soz"},
 
     # ══════════════════════════════════════════════════════════════
     # MODULE 6 — Salomlashish + Oila: 1 mavzu
@@ -257,7 +297,6 @@ async def seed():
 
     from sqlalchemy import delete, func, text
     async with async_session_maker() as session:
-        # Ensure topic_id column exists
         try:
             await session.execute(text(
                 "ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS topic_id INTEGER NOT NULL DEFAULT 1"
@@ -280,10 +319,10 @@ async def seed():
                 select(func.max(Vocabulary.topic_id))
             )).scalar() or 1
 
-            if has_religious or max_topic <= 1:
+            if has_religious or max_topic <= 1 or count < len(VOCABULARY):
                 await session.execute(delete(Vocabulary))
                 await session.commit()
-                print("Wiped old vocabulary — re-seeding with topic-based content.")
+                print("Wiped old vocabulary — re-seeding with expanded topic content.")
             else:
                 print(f"Vocabulary already populated ({count} words). Skipping.")
                 return

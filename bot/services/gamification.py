@@ -167,10 +167,11 @@ def tier_display(tier: SubscriptionTier) -> str:
     }.get(tier.value, "🆓 Bepul")
 
 
-def shijoat_pin_text(shijoat: int, streak: int, tier: SubscriptionTier) -> str:
+def shijoat_pin_text(shijoat: int, module: int, topic: int, pct: int, tier: SubscriptionTier) -> str:
     tier_icon = {"free": "🆓", "premium": "💎", "unlimited": "♾️"}.get(tier.value, "🆓")
-    streak_str = f"🔥 {streak} kun" if streak >= 2 else "🔥 Streak yo'q"
+    bar_filled = int(pct / 100 * 8)
+    bar = "█" * bar_filled + "░" * (8 - bar_filled)
     return (
-        f"⚡ <b>Shijoat: {shijoat}</b>\n"
-        f"{streak_str}  ·  {tier_icon} {tier.value.capitalize()}"
+        f"⚡ <b>Shijoat: {shijoat}</b>  ·  {tier_icon}\n"
+        f"📊 {module}-modul T{topic}: {bar} {pct}%"
     )

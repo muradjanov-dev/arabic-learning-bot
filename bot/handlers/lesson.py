@@ -69,10 +69,37 @@ async def _try_delete(bot: Bot, chat_id: int, message_ids: list) -> None:
             pass
 
 
+async def _get_module_pct(session: AsyncSession, user) -> int:
+    """Returns mastery % for the user's current topic."""
+    from sqlalchemy import select, and_, func as sqlfunc
+    from bot.database.models import UserProgress
+    current_topic = getattr(user, "current_topic", 1)
+    vocab_repo = VocabularyRepository(session)
+    words = await vocab_repo.get_words_for_topic(user.current_level, current_topic)
+    if not words:
+        return 0
+    ids = [w.word_id for w in words]
+    r = await session.execute(
+        select(sqlfunc.count(UserProgress.id)).where(and_(
+            UserProgress.user_id == user.user_id,
+            UserProgress.word_id.in_(ids),
+            UserProgress.mastery_level >= 3,
+        ))
+    )
+    return int((r.scalar() or 0) / len(words) * 100)
+
+
 async def _update_shijoat_pin(bot: Bot, user, session: AsyncSession) -> None:
     if not getattr(user, "shijoat_pin_id", None):
         return
-    text = shijoat_pin_text(user.shijoat_points, user.streak_days, user.subscription_tier)
+    pct = await _get_module_pct(session, user)
+    text = shijoat_pin_text(
+        user.shijoat_points,
+        user.current_level,
+        getattr(user, "current_topic", 1),
+        pct,
+        user.subscription_tier,
+    )
     try:
         await bot.edit_message_text(text=text, chat_id=user.user_id, message_id=user.shijoat_pin_id)
     except Exception:
@@ -155,17 +182,20 @@ async def lesson_start(callback: CallbackQuery, state: FSMContext, user, session
     total = len(questions)
     chat_id = callback.message.chat.id
 
-    pin_msg = await callback.message.answer(
-        PROGRESS_PIN.format(bar=_bar(0, total), pct=0, current=0, total=total)
-    )
-    try:
-        await callback.bot.pin_chat_message(chat_id=chat_id, message_id=pin_msg.message_id, disable_notification=True)
-    except Exception:
-        pass
+    # Reuse shijoat pin for progress — no new messages, no pin notifications
+    shijoat_pin_id = getattr(user, "shijoat_pin_id", None)
+    progress_text = PROGRESS_PIN.format(bar=_bar(0, total), pct=0, current=0, total=total)
+    pin_msg_id = None
 
-    fresh = await user_repo.get(user.user_id)
-    if fresh:
-        await _update_shijoat_pin(callback.bot, fresh, session)
+    if shijoat_pin_id:
+        try:
+            await callback.bot.edit_message_text(
+                text=progress_text, chat_id=chat_id, message_id=shijoat_pin_id
+            )
+            pin_msg_id = shijoat_pin_id
+        except Exception:
+            pass
+    # No fallback pin — never pin any message during a lesson
 
     await state.set_state(LessonStates.in_lesson)
     await state.set_data({
@@ -175,7 +205,7 @@ async def lesson_start(callback: CallbackQuery, state: FSMContext, user, session
         "correct_count": 0,
         "selected_words": [],
         "shijoat": new_shijoat,
-        "pin_msg_id": pin_msg.message_id,
+        "pin_msg_id": pin_msg_id,
         "chat_id": chat_id,
         "msg_ids": [],
     })
@@ -344,7 +374,7 @@ async def handle_choice_answer(
 @router.callback_query(LessonStates.in_lesson, JumbledWordCb.filter())
 async def handle_jumbled_word(
     callback: CallbackQuery, callback_data: JumbledWordCb,
-    state: FSMContext, session: AsyncSession, user,
+    state: FSMContext, session: AsyncSession,
 ):
     data = await state.get_data()
     selected = list(data.get("selected_words", []))
@@ -451,17 +481,35 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
 
     await session.commit()
 
-    # Clean up: unpin progress bar, update shijoat pin, delete question messages
+    # Restore shijoat pin with updated values (no unpin/repin = no system messages in chat)
     if pin_id and chat_id:
-        try:
-            await callback.bot.edit_message_text("✅ Dars yakunlandi!", chat_id=chat_id, message_id=pin_id)
-            await callback.bot.unpin_chat_message(chat_id=chat_id, message_id=pin_id)
-        except Exception:
-            pass
+        shijoat_pin_id = getattr(user, "shijoat_pin_id", None)
+        if fresh and pin_id == shijoat_pin_id:
+            # We borrowed the shijoat pin — restore it with updated progress
+            try:
+                pct = await _get_module_pct(session, fresh)
+                await callback.bot.edit_message_text(
+                    text=shijoat_pin_text(
+                        fresh.shijoat_points,
+                        fresh.current_level,
+                        getattr(fresh, "current_topic", 1),
+                        pct,
+                        fresh.subscription_tier,
+                    ),
+                    chat_id=chat_id, message_id=pin_id,
+                )
+            except Exception:
+                pass
+        else:
+            # Separate lesson pin — delete it entirely (no "Dars yakunlandi!" clutter)
+            try:
+                await callback.bot.delete_message(chat_id=chat_id, message_id=pin_id)
+            except Exception:
+                pass
+            if fresh and getattr(fresh, "shijoat_pin_id", None):
+                await _update_shijoat_pin(callback.bot, fresh, session)
 
-    if fresh and getattr(fresh, "shijoat_pin_id", None):
-        await _update_shijoat_pin(callback.bot, fresh, session)
-
+    # Delete all lesson question messages
     if chat_id and msg_ids:
         await _try_delete(callback.bot, chat_id, msg_ids)
 
