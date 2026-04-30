@@ -21,12 +21,12 @@ MID_PRAISE = [
 LOW_PRAISE = [
     "🌱 Boshlash — o'ziyoq katta qadam! Ertaga yana urinib ko'ring, vaqt o'tishi bilan osonlashadi. 💫",
     "💙 Ruhingizni tushirmang! Har bir ulug' tilshunos shunday boshlagan. Sabr bilan o'rganing! 📖",
-    "🤝 Bugun az o'rgansangiz ham, ertaga ko'proq o'rganasiz! 🌟",
+    "🤝 Bugun ozgina o'rgansangiz ham, ertaga ko'proq o'rganasiz! 🌟",
 ]
 
 STREAK_BONUS = [
-    "\n\n🔥 {streak} kunlik streak! Zo'r odat! +{bonus} qo'shimcha XP!",
-    "\n\n⚡ {streak} kun uzluksiz! Kunlik streak bonusi: +{bonus} XP! Davom eting!",
+    "\n\n🔥 {streak} kunlik streak! Zo'r odat! +{bonus} qo'shimcha Olmos!",
+    "\n\n⚡ {streak} kun uzluksiz! Kunlik streak bonusi: +{bonus} Olmos! Davom eting!",
 ]
 
 

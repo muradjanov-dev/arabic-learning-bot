@@ -10,6 +10,7 @@ KB_ROADMAP = "🗺 Yo'lxarita"
 KB_LEADERBOARD = "🏆 Reyting"
 KB_PREMIUM = "💎 Premium"
 KB_SETTINGS = "⚙️ Sozlamalar"
+KB_REFERRAL = "👥 Do'stlarni taklif et"
 
 
 def reply_main_kb() -> ReplyKeyboardMarkup:
@@ -20,6 +21,7 @@ def reply_main_kb() -> ReplyKeyboardMarkup:
             [KeyboardButton(text=KB_PROFILE), KeyboardButton(text=KB_ROADMAP)],
             [KeyboardButton(text=KB_LEADERBOARD), KeyboardButton(text=KB_PREMIUM)],
             [KeyboardButton(text=KB_SETTINGS)],
+            [KeyboardButton(text=KB_REFERRAL)],
         ],
         resize_keyboard=True,
         persistent=True,
@@ -41,6 +43,7 @@ def main_menu_kb() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="⚙️ Sozlamalar", callback_data="menu:settings"),
         ],
         [InlineKeyboardButton(text="💎 Premium", callback_data="menu:subscription")],
+        [InlineKeyboardButton(text="👥 Do'stlarni taklif et", callback_data="referral:show")],
     ])
 
 
@@ -92,6 +95,7 @@ def payment_send_receipt_kb(tier: str) -> InlineKeyboardMarkup:
 
 def upsell_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="👥 Do'st taklif qil — 500 Shijoat", callback_data="referral:show")],
         [InlineKeyboardButton(text="💎 Premium xarid qilish", callback_data="sub:select:premium")],
         [InlineKeyboardButton(text="♾️ Cheksiz xarid qilish", callback_data="sub:select:unlimited")],
         [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="menu:main")],
@@ -109,4 +113,22 @@ def roadmap_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📖 Dars boshlash", callback_data="menu:lesson")],
         [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="menu:main")],
+    ])
+
+
+def leaderboard_kb(period: str = "weekly") -> InlineKeyboardMarkup:
+    periods = [("📅 Kun", "daily"), ("📆 Hafta", "weekly"), ("🗓 Oy", "monthly"), ("📅 Yil", "yearly")]
+    row = []
+    for label, key in periods:
+        text = f"• {label} •" if key == period else label
+        row.append(InlineKeyboardButton(text=text, callback_data=f"lb:{key}"))
+    return InlineKeyboardMarkup(inline_keyboard=[
+        row,
+        [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="menu:main")],
+    ])
+
+
+def congrat_kb(target_user_id: int, ach_key: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🎊 Tabrikladim!", callback_data=f"congrat:{target_user_id}:{ach_key}")],
     ])

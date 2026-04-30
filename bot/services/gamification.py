@@ -32,6 +32,37 @@ LEVEL_TITLES = [
     "Shifohiya — Fe'llar",
 ]
 
+TOPIC_NAMES = {
+    (1, 1): "Harflar: ا ب ت ث ج ح خ",
+    (1, 2): "Birinchi so'zlar",
+    (1, 3): "Jism a'zolari",
+    (1, 4): "Ranglar",
+    (1, 5): "Hayvonlar",
+    (1, 6): "Raqamlar 1-7",
+    (2, 1): "Harflar: د ذ ر ز س ش ص",
+    (2, 2): "Harflar: ض ط ظ ع غ ف ق",
+    (2, 3): "Tabiat so'zlari",
+    (2, 4): "Odamlar va narsalar",
+    (3, 1): "Harflar: ك ل م ن و ه ي",
+    (3, 2): "Maxsus belgilar",
+    (3, 3): "Maktab",
+    (3, 4): "Uy",
+    (3, 5): "Tabiat va ob-havo",
+    (4, 1): "Harakatlar",
+    (5, 1): "Oddiy so'zlar",
+    (5, 2): "Tabiat",
+    (6, 1): "Salomlashish",
+    (6, 2): "Oila",
+    (7, 1): "Olmoshlar",
+    (7, 2): "Ko'rsatish olmoshlari",
+    (8, 1): "Sifatlar",
+    (8, 2): "Zid sifatlar",
+    (9, 1): "Fe'llar (harakatlar)",
+    (9, 2): "Fe'llar (holat)",
+    (10, 1): "Fe'llar (his-tuyg'u)",
+    (10, 2): "Fe'llar (aqliy)",
+}
+
 ACHIEVEMENTS = {
     "first_lesson": {
         "name": "🎯 Birinchi qadam!",
@@ -45,13 +76,25 @@ ACHIEVEMENTS = {
         "name": "⚡ Haftalik chempion!",
         "desc": "Ketma-ket 7 kun dars qilish",
     },
+    "streak_14": {
+        "name": "🔥 Ikki hafta!",
+        "desc": "Ketma-ket 14 kun dars qilish",
+    },
     "streak_30": {
         "name": "💫 Oylik qahramon!",
         "desc": "Ketma-ket 30 kun dars qilish",
     },
+    "streak_60": {
+        "name": "💫 Ikki oylik qahramon!",
+        "desc": "Ketma-ket 60 kun dars qilish",
+    },
     "words_10": {
         "name": "📚 10 so'z egasi!",
         "desc": "10 ta so'zni to'liq o'zlashtirish (mastery 4+)",
+    },
+    "words_25": {
+        "name": "📖 25 so'z egasi!",
+        "desc": "25 ta so'zni o'zlashtirish",
     },
     "words_50": {
         "name": "🏆 50 so'z ustasi!",
@@ -77,6 +120,30 @@ ACHIEVEMENTS = {
         "name": "👑 Arab tili ustasi!",
         "desc": "10-darajaga ko'tarilish",
     },
+    "module_5": {
+        "name": "🚀 Yarim yo'l!",
+        "desc": "5-modulga yetish",
+    },
+    "referral_1": {
+        "name": "🤝 Birinchi do'st!",
+        "desc": "1 do'stni taklif qilish",
+    },
+    "referral_5": {
+        "name": "🌟 Do'stlar armiyasi!",
+        "desc": "5 do'stni taklif qilish",
+    },
+    "daily_goal_1": {
+        "name": "🎯 Kunlik maqsad!",
+        "desc": "Bir kunda 3 ta dars bajarish",
+    },
+    "daily_goal_7": {
+        "name": "📅 Haftalik intizom!",
+        "desc": "7 kun ketma-ket kunlik maqsadni bajarish",
+    },
+    "speed_run": {
+        "name": "⚡ Chaqmoq tezlik!",
+        "desc": "Bir darsda barcha savollarni 30 soniyada javoblash",
+    },
 }
 
 
@@ -85,6 +152,8 @@ def check_new_achievements(
     correct: int,
     total: int,
     mastered_total: int,
+    referral_count: int = 0,
+    daily_done: int = 0,
 ) -> list[str]:
     """Returns list of newly earned achievement IDs."""
     earned = set(filter(None, (user.achievements_earned or "").split(",")))
@@ -102,10 +171,16 @@ def check_new_achievements(
         _check("streak_3")
     if user.streak_days >= 7:
         _check("streak_7")
+    if user.streak_days >= 14:
+        _check("streak_14")
     if user.streak_days >= 30:
         _check("streak_30")
+    if user.streak_days >= 60:
+        _check("streak_60")
     if mastered_total >= 10:
         _check("words_10")
+    if mastered_total >= 25:
+        _check("words_25")
     if mastered_total >= 50:
         _check("words_50")
     if mastered_total >= 100:
@@ -114,8 +189,15 @@ def check_new_achievements(
         _check("level_3")
     if user.current_level >= 5:
         _check("level_5")
+        _check("module_5")
     if user.current_level >= 10:
         _check("level_10")
+    if referral_count >= 1:
+        _check("referral_1")
+    if referral_count >= 5:
+        _check("referral_5")
+    if daily_done >= 3:
+        _check("daily_goal_1")
 
     return new_ones
 

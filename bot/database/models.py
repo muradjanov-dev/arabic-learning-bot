@@ -50,6 +50,9 @@ class User(Base):
     achievements_earned = Column(Text, nullable=True, default="")
     shijoat_pin_id = Column(Integer, nullable=True)
     current_topic = Column(Integer, nullable=False, default=1)
+    referred_by = Column(Integer, nullable=True)  # user_id of referrer
+    daily_lessons_done = Column(Integer, default=0, nullable=False)
+    last_daily_reset = Column(DateTime, nullable=True)
 
     progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")
     lessons = relationship("Lesson", back_populates="user", cascade="all, delete-orphan")

@@ -13,7 +13,7 @@ from bot.keyboards.main_kb import (
     arabic_level_kb, back_to_menu_kb, roadmap_kb,
     confirm_lesson_kb, upsell_kb,
     reply_main_kb, KB_LESSON, KB_PROFILE, KB_ROADMAP, KB_LEADERBOARD,
-    KB_PREMIUM, KB_SETTINGS,
+    KB_PREMIUM, KB_SETTINGS, KB_REFERRAL,
 )
 from bot.services.gamification import shijoat_pin_text, tier_display, LEVEL_TITLES, get_level_from_xp, LEVEL_NAMES
 from bot.services.lesson_service import TOTAL_PER_LESSON
@@ -23,11 +23,13 @@ from bot.utils.messages import (
     LESSON_START_CONFIRM, NO_SHIJOAT,
     ROADMAP_HEADER, ROADMAP_LEVEL_DONE, ROADMAP_LEVEL_CURRENT,
     ROADMAP_LEVEL_NEXT, ROADMAP_LEVEL_LOCKED,
+    REFERRAL_INFO, REFERRAL_RECEIVED, REFERRAL_SUCCESS,
 )
 
 router = Router()
 
 MAX_LEVEL = 10
+REFERRAL_SHIJOAT_BONUS = 500
 
 
 class RegStates(StatesGroup):
@@ -65,6 +67,14 @@ async def _pin_shijoat(message: Message, user, session: AsyncSession) -> None:
         pass
 
 
+async def _get_bot_username(bot) -> str:
+    try:
+        me = await bot.get_me()
+        return me.username or "arabicbot"
+    except Exception:
+        return "arabicbot"
+
+
 async def _show_lesson_confirm(message: Message, user, session: AsyncSession) -> None:
     if user.shijoat_points < settings.LESSON_SHIJOAT_COST:
         await message.answer(NO_SHIJOAT, reply_markup=upsell_kb())
@@ -89,13 +99,18 @@ async def _show_lesson_confirm(message: Message, user, session: AsyncSession) ->
         mastered_in_topic = 0
 
     progress_pct = int(mastered_in_topic / total_in_topic * 100)
+
+    from bot.services.gamification import TOPIC_NAMES
+    topic_name = TOPIC_NAMES.get((user.current_level, current_topic), f"Mavzu {current_topic}")
+
     text = LESSON_START_CONFIRM.format(
         module=user.current_level,
         topic=current_topic,
+        topic_name=topic_name,
         questions=TOTAL_PER_LESSON,
         cost=settings.LESSON_SHIJOAT_COST,
         shijoat=user.shijoat_points,
-        progress_pct=progress_pct,
+        module_pct=progress_pct,
     )
     await message.answer(text, reply_markup=confirm_lesson_kb(user.shijoat_points))
 
@@ -130,15 +145,70 @@ async def _show_roadmap(message: Message, user, session: AsyncSession) -> None:
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext, user, session: AsyncSession):
     await state.clear()
+
+    # Extract referral code if present
+    ref_user_id = None
+    if message.text and len(message.text.split()) > 1:
+        payload = message.text.split()[1]
+        if payload.startswith("ref") and payload[3:].isdigit():
+            ref_user_id = int(payload[3:])
+
     if user.is_registered:
+        # Handle referral for already-registered user (ignore self-referral)
+        if ref_user_id and ref_user_id != user.user_id and not getattr(user, "referred_by", None):
+            await _process_referral(user, ref_user_id, session, message)
+
         await message.answer(MAIN_MENU, reply_markup=reply_main_kb())
         if not user.shijoat_pin_id:
             await _pin_shijoat(message, user, session)
         return
 
+    # Store referral for after registration
+    if ref_user_id and ref_user_id != user.user_id:
+        await state.update_data(pending_referrer=ref_user_id)
+
     await message.answer(WELCOME, reply_markup=reply_main_kb())
     await message.answer(ASK_NAME)
     await state.set_state(RegStates.waiting_name)
+
+
+async def _process_referral(new_user, referrer_id: int, session: AsyncSession, message) -> None:
+    """Give both users +500 Shijoat for successful referral."""
+    repo = UserRepository(session)
+    referrer = await repo.get(referrer_id)
+    if not referrer or not referrer.is_registered:
+        return
+
+    # Update new user: mark referred_by
+    await repo.update(
+        new_user.user_id,
+        referred_by=referrer_id,
+        shijoat_points=new_user.shijoat_points + REFERRAL_SHIJOAT_BONUS,
+    )
+
+    # Update referrer: give bonus
+    await repo.update(
+        referrer_id,
+        shijoat_points=referrer.shijoat_points + REFERRAL_SHIJOAT_BONUS,
+    )
+    await session.commit()
+
+    # Notify new user
+    try:
+        await message.answer(
+            REFERRAL_RECEIVED.format(referrer_name=referrer.full_name or "Do'stingiz")
+        )
+    except Exception:
+        pass
+
+    # Notify referrer
+    try:
+        await message.bot.send_message(
+            referrer_id,
+            REFERRAL_SUCCESS.format(name=new_user.full_name or "Yangi foydalanuvchi"),
+        )
+    except Exception:
+        pass
 
 
 # ── Registration flow ─────────────────────────────────────────────────────────
@@ -180,6 +250,7 @@ async def reg_arabic_level(callback: CallbackQuery, state: FSMContext, user, ses
     start_level = {"beginner": 1, "elementary": 3, "intermediate": 6}.get(level_str, 1)
 
     data = await state.get_data()
+    pending_referrer = data.get("pending_referrer")
     repo = UserRepository(session)
     await repo.update(
         user.user_id,
@@ -192,12 +263,18 @@ async def reg_arabic_level(callback: CallbackQuery, state: FSMContext, user, ses
     await session.commit()
     await state.clear()
 
-    await callback.message.edit_text(REGISTRATION_DONE.format(level=start_level))
+    full_name = data.get("full_name", "")
+    await callback.message.edit_text(REGISTRATION_DONE.format(level=start_level, name=full_name))
     await callback.message.answer(MAIN_MENU, reply_markup=reply_main_kb())
 
     updated = await repo.get(user.user_id)
     if updated:
         await _pin_shijoat(callback.message, updated, session)
+
+    # Process pending referral after registration
+    if pending_referrer and pending_referrer != user.user_id:
+        await _process_referral(updated or user, pending_referrer, session, callback.message)
+
     await callback.answer()
 
 
@@ -210,6 +287,22 @@ async def menu_main(callback: CallbackQuery, state: FSMContext, user):
         return
     await state.clear()
     await callback.message.edit_text(MAIN_MENU)
+    await callback.answer()
+
+
+# ── Referral handlers ─────────────────────────────────────────────────────────
+
+@router.callback_query(F.data == "referral:show")
+async def referral_show(callback: CallbackQuery, user):
+    if not user.is_registered:
+        await callback.answer("Avval ro'yxatdan o'ting!", show_alert=True)
+        return
+    bot_username = await _get_bot_username(callback.bot)
+    link = f"https://t.me/{bot_username}?start=ref{user.user_id}"
+    await callback.message.edit_text(
+        REFERRAL_INFO.format(link=link),
+        reply_markup=back_to_menu_kb(),
+    )
     await callback.answer()
 
 
@@ -268,7 +361,7 @@ async def kb_leaderboard(message: Message, session: AsyncSession):
     lines = ["🏆 <b>Top 10 Reyting</b>\n"]
     for i, u in enumerate(users):
         name = u.full_name or "Noma'lum"
-        lines.append(f"{medals[i]} {name} — {u.current_xp} XP  🔥{u.streak_days}")
+        lines.append(f"{medals[i]} {name} — {u.current_xp} 💎  🔥{u.streak_days}")
     await message.answer("\n".join(lines) if len(lines) > 1 else "Hozircha reyting yo'q.", reply_markup=back_to_menu_kb())
 
 
@@ -292,6 +385,19 @@ async def kb_settings(message: Message, user):
         return
     from bot.keyboards.main_kb import settings_kb
     await message.answer("⚙️ <b>Sozlamalar</b>", reply_markup=settings_kb(user.is_notification_enabled))
+
+
+@router.message(F.text == KB_REFERRAL)
+async def kb_referral(message: Message, user):
+    if not user.is_registered:
+        await message.answer("Avval /start orqali ro'yxatdan o'ting.")
+        return
+    bot_username = await _get_bot_username(message.bot)
+    link = f"https://t.me/{bot_username}?start=ref{user.user_id}"
+    await message.answer(
+        REFERRAL_INFO.format(link=link),
+        reply_markup=back_to_menu_kb(),
+    )
 
 
 # ── Shortcut commands ─────────────────────────────────────────────────────────

@@ -66,6 +66,65 @@ async def admin_main(callback: CallbackQuery, state: FSMContext, session: AsyncS
     await callback.answer()
 
 
+# ── Reset commands ───────────────────────────────────────────────────────────
+
+@router.message(Command("resetme"))
+async def cmd_resetme(message: Message, session: AsyncSession):
+    """Admin only: wipe your own progress and re-register from scratch."""
+    if not is_admin(message.from_user.id):
+        await message.answer("Ruxsat yo'q.")
+        return
+    from sqlalchemy import delete
+    from bot.database.models import UserProgress, Lesson as LessonModel
+    uid = message.from_user.id
+    await session.execute(delete(UserProgress).where(UserProgress.user_id == uid))
+    await session.execute(delete(LessonModel).where(LessonModel.user_id == uid))
+    repo = UserRepository(session)
+    await repo.update(
+        uid,
+        is_registered=False,
+        current_level=1,
+        current_topic=1,
+        current_xp=0,
+        streak_days=0,
+        achievements_earned="",
+        shijoat_pin_id=None,
+        daily_lessons_done=0,
+        referred_by=None,
+        last_active_date=None,
+    )
+    await session.commit()
+    await message.answer("✅ Ma'lumotlaringiz tozalandi. /start bilan qayta boshlang.")
+
+
+@router.message(Command("resetall"))
+async def cmd_resetall(message: Message, session: AsyncSession):
+    """Admin only: wipe ALL users' progress (keeps accounts, re-registration required)."""
+    if not is_admin(message.from_user.id):
+        await message.answer("Ruxsat yo'q.")
+        return
+    from sqlalchemy import delete, update
+    from bot.database.models import UserProgress, Lesson as LessonModel, User
+    await session.execute(delete(UserProgress))
+    await session.execute(delete(LessonModel))
+    await session.execute(
+        update(User).values(
+            is_registered=False,
+            current_level=1,
+            current_topic=1,
+            current_xp=0,
+            streak_days=0,
+            achievements_earned="",
+            shijoat_pin_id=None,
+            daily_lessons_done=0,
+            referred_by=None,
+            last_active_date=None,
+        )
+    )
+    await session.commit()
+    await message.answer(f"✅ Barcha foydalanuvchilar qayta boshlash uchun tozalandi.")
+
+
 # ── Statistics ────────────────────────────────────────────────────────────────
 
 @router.callback_query(F.data == "admin:stats")

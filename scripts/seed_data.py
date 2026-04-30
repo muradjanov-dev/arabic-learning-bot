@@ -185,7 +185,7 @@ VOCABULARY = [
     {"level_id": 4, "topic_id": 1, "arabic_word": "بِي", "uzbek_translation": "Madd ya — uzun 'ii' (bii)", "transliteration": "madd ya, bii", "category": "harakat"},
 
     # ══════════════════════════════════════════════════════════════
-    # MODULE 5 — Oddiy so'zlar (1): 1 mavzu
+    # MODULE 5 — Oddiy so'zlar + Tabiat: 2 mavzu
     # ══════════════════════════════════════════════════════════════
     {"level_id": 5, "topic_id": 1, "arabic_word": "شَجَرَةٌ", "uzbek_translation": "🌳 Daraxt", "transliteration": "shajara", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "سَمَاءٌ", "uzbek_translation": "🌤️ Osmon", "transliteration": "samaa", "category": "soz"},
@@ -198,8 +198,18 @@ VOCABULARY = [
     {"level_id": 5, "topic_id": 1, "arabic_word": "نَهَارٌ", "uzbek_translation": "☀️ Kunduz", "transliteration": "nahaar", "category": "soz"},
     {"level_id": 5, "topic_id": 1, "arabic_word": "وَقْتٌ", "uzbek_translation": "⏰ Vaqt", "transliteration": "waqt", "category": "soz"},
 
+    # Mavzu 2: Tabiat extended (8 ta)
+    {"level_id": 5, "topic_id": 2, "arabic_word": "رِيَاضَةٌ", "uzbek_translation": "⚽ Sport", "transliteration": "riyaada", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "صِحَّةٌ", "uzbek_translation": "💪 Sog'liq", "transliteration": "sihha", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "لَوْنٌ", "uzbek_translation": "🎨 Rang", "transliteration": "lawn", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "صَوْتٌ", "uzbek_translation": "🔊 Ovoz", "transliteration": "sawt", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "حَرَارَةٌ", "uzbek_translation": "🌡️ Issiqlik", "transliteration": "haraara", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "بُرُودَةٌ", "uzbek_translation": "❄️ Sovuq", "transliteration": "buruuda", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "مَسَافَةٌ", "uzbek_translation": "📏 Masofa", "transliteration": "masaafa", "category": "soz"},
+    {"level_id": 5, "topic_id": 2, "arabic_word": "سُرْعَةٌ", "uzbek_translation": "⚡ Tezlik", "transliteration": "sur'a", "category": "soz"},
+
     # ══════════════════════════════════════════════════════════════
-    # MODULE 6 — Salomlashish + Oila: 1 mavzu
+    # MODULE 6 — Salomlashish + Oila: 2 mavzu
     # ══════════════════════════════════════════════════════════════
     {"level_id": 6, "topic_id": 1, "arabic_word": "مَرْحَبًا", "uzbek_translation": "👋 Salom", "transliteration": "marhaban", "category": "soz"},
     {"level_id": 6, "topic_id": 1, "arabic_word": "أَهْلًا", "uzbek_translation": "🤝 Ahlan", "transliteration": "ahlan", "category": "soz"},
@@ -212,8 +222,19 @@ VOCABULARY = [
     {"level_id": 6, "topic_id": 1, "arabic_word": "وَلَدٌ", "uzbek_translation": "👦 Bola (o'g'il)", "transliteration": "walad", "category": "soz"},
     {"level_id": 6, "topic_id": 1, "arabic_word": "بِنْتٌ", "uzbek_translation": "👧 Qiz", "transliteration": "bint", "category": "soz"},
 
+    # Mavzu 2: Oila extended (8 ta)
+    {"level_id": 6, "topic_id": 2, "arabic_word": "أَخٌ", "uzbek_translation": "👦 Aka/Uka", "transliteration": "akh", "category": "soz",
+     "example_sentence_arabic": "هَذَا أَخِي", "example_sentence_uzbek": "Bu mening akam"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "أُخْتٌ", "uzbek_translation": "👧 Opa/Singil", "transliteration": "ukht", "category": "soz"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "جَدٌّ", "uzbek_translation": "👴 Bobo", "transliteration": "jadd", "category": "soz"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "جَدَّةٌ", "uzbek_translation": "👵 Buvi", "transliteration": "jadda", "category": "soz"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "زَوْجٌ", "uzbek_translation": "👨 Er", "transliteration": "zawj", "category": "soz"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "زَوْجَةٌ", "uzbek_translation": "👩 Xotin", "transliteration": "zawja", "category": "soz"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "عَمٌّ", "uzbek_translation": "👨 Amaki", "transliteration": "amm", "category": "soz"},
+    {"level_id": 6, "topic_id": 2, "arabic_word": "خَالٌ", "uzbek_translation": "👨 Tog'a", "transliteration": "khaal", "category": "soz"},
+
     # ══════════════════════════════════════════════════════════════
-    # MODULE 7 — Olmoshlar: 1 mavzu
+    # MODULE 7 — Olmoshlar: 2 mavzu
     # ══════════════════════════════════════════════════════════════
     {"level_id": 7, "topic_id": 1, "arabic_word": "أَنَا", "uzbek_translation": "🙋 Men", "transliteration": "ana", "category": "zamir",
      "example_sentence_arabic": "أَنَا طَالِبٌ", "example_sentence_uzbek": "Men talabaman"},
@@ -229,8 +250,21 @@ VOCABULARY = [
     {"level_id": 7, "topic_id": 1, "arabic_word": "هَذِهِ", "uzbek_translation": "👆 Bu (ayol)", "transliteration": "haazihi", "category": "zamir"},
     {"level_id": 7, "topic_id": 1, "arabic_word": "ذَلِكَ", "uzbek_translation": "👇 U / Ul (uzoq)", "transliteration": "zaalika", "category": "zamir"},
 
+    # Mavzu 2: Savol so'zlari — Ko'rsatish olmoshlari (8 ta)
+    {"level_id": 7, "topic_id": 2, "arabic_word": "مَنْ", "uzbek_translation": "❓ Kim?", "transliteration": "man", "category": "zamir",
+     "example_sentence_arabic": "مَنْ هَذَا؟", "example_sentence_uzbek": "Bu kim?"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "مَا", "uzbek_translation": "❓ Nima?", "transliteration": "maa", "category": "zamir",
+     "example_sentence_arabic": "مَا هَذَا؟", "example_sentence_uzbek": "Bu nima?"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "أَيْنَ", "uzbek_translation": "📍 Qayerda?", "transliteration": "ayna", "category": "zamir"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "مَتَى", "uzbek_translation": "🕐 Qachon?", "transliteration": "mataa", "category": "zamir"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "لِمَاذَا", "uzbek_translation": "🤔 Nima uchun?", "transliteration": "limaaza", "category": "zamir"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "كَيْفَ", "uzbek_translation": "💭 Qanday?", "transliteration": "kayfa", "category": "zamir"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "كَمْ", "uzbek_translation": "🔢 Qancha?", "transliteration": "kam", "category": "zamir"},
+    {"level_id": 7, "topic_id": 2, "arabic_word": "هَلْ", "uzbek_translation": "❓ ...mi? (sual yuklamasi)", "transliteration": "hal", "category": "zamir",
+     "example_sentence_arabic": "هَلْ أَنْتَ طَالِبٌ؟", "example_sentence_uzbek": "Sen talabamisan?"},
+
     # ══════════════════════════════════════════════════════════════
-    # MODULE 8 — Sifatlar: 1 mavzu
+    # MODULE 8 — Sifatlar: 2 mavzu
     # ══════════════════════════════════════════════════════════════
     {"level_id": 8, "topic_id": 1, "arabic_word": "كَبِيرٌ", "uzbek_translation": "🔵 Katta", "transliteration": "kabiir", "category": "sifat",
      "example_sentence_arabic": "هَذَا بَيْتٌ كَبِيرٌ", "example_sentence_uzbek": "Bu katta uy"},
@@ -245,8 +279,22 @@ VOCABULARY = [
     {"level_id": 8, "topic_id": 1, "arabic_word": "قَصِيرٌ", "uzbek_translation": "📐 Qisqa / Past", "transliteration": "qasiir", "category": "sifat"},
     {"level_id": 8, "topic_id": 1, "arabic_word": "قَوِيٌّ", "uzbek_translation": "💪 Kuchli", "transliteration": "qawiyy", "category": "sifat"},
 
+    # Mavzu 2: Zid sifatlar (8 ta)
+    {"level_id": 8, "topic_id": 2, "arabic_word": "حَارٌّ", "uzbek_translation": "🔥 Issiq", "transliteration": "haar", "category": "sifat",
+     "example_sentence_arabic": "الشَّايُ حَارٌّ", "example_sentence_uzbek": "Choy issiq"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "بَارِدٌ", "uzbek_translation": "❄️ Sovuq", "transliteration": "baarid", "category": "sifat",
+     "example_sentence_arabic": "الْمَاءُ بَارِدٌ", "example_sentence_uzbek": "Suv sovuq"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "نَظِيفٌ", "uzbek_translation": "✨ Toza", "transliteration": "naziif", "category": "sifat"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "وَسِخٌ", "uzbek_translation": "🪣 Iflos", "transliteration": "wasikh", "category": "sifat"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "مُمْتَازٌ", "uzbek_translation": "🏆 A'lo", "transliteration": "mumtaaz", "category": "sifat",
+     "example_sentence_arabic": "هَذَا طَالِبٌ مُمْتَازٌ", "example_sentence_uzbek": "Bu a'lo o'quvchi"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "رَخِيصٌ", "uzbek_translation": "💰 Arzon", "transliteration": "rakhiis", "category": "sifat"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "غَالٍ", "uzbek_translation": "💎 Qimmat", "transliteration": "ghaali", "category": "sifat"},
+    {"level_id": 8, "topic_id": 2, "arabic_word": "مَرِيضٌ", "uzbek_translation": "🤒 Kasal", "transliteration": "mariid", "category": "sifat",
+     "example_sentence_arabic": "هُوَ مَرِيضٌ الْيَوْمَ", "example_sentence_uzbek": "U bugun kasal"},
+
     # ══════════════════════════════════════════════════════════════
-    # MODULE 9 — Fe'llar (1): 1 mavzu
+    # MODULE 9 — Fe'llar (1): 2 mavzu
     # ══════════════════════════════════════════════════════════════
     {"level_id": 9, "topic_id": 1, "arabic_word": "ذَهَبَ", "uzbek_translation": "🚶 Ketdi", "transliteration": "zahaba", "category": "fel",
      "example_sentence_arabic": "ذَهَبَ الْوَلَدُ إِلَى الْبَيْتِ", "example_sentence_uzbek": "Bola uyga ketdi"},
@@ -264,8 +312,21 @@ VOCABULARY = [
     {"level_id": 9, "topic_id": 1, "arabic_word": "دَخَلَ", "uzbek_translation": "🏠 Kirdi", "transliteration": "dakhala", "category": "fel",
      "example_sentence_arabic": "دَخَلَ الْوَلَدُ الْغُرْفَةَ", "example_sentence_uzbek": "Bola xonaga kirdi"},
 
+    # Mavzu 2: Fe'llar (holat) (8 ta)
+    {"level_id": 9, "topic_id": 2, "arabic_word": "عَرَفَ", "uzbek_translation": "💡 Bildi", "transliteration": "arafa", "category": "fel",
+     "example_sentence_arabic": "عَرَفَ الطَّالِبُ الْجَوَابَ", "example_sentence_uzbek": "Talaba javobni bildi"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "فَكَّرَ", "uzbek_translation": "🤔 O'yladi", "transliteration": "fakkara", "category": "fel"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "فَهِمَ", "uzbek_translation": "💭 Tushundi", "transliteration": "fahima", "category": "fel",
+     "example_sentence_arabic": "فَهِمَ الدَّرْسَ", "example_sentence_uzbek": "Darsni tushundi"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "أَحَبَّ", "uzbek_translation": "❤️ Sevdi", "transliteration": "ahabba", "category": "fel"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "كَرِهَ", "uzbek_translation": "😠 Yomon ko'rdi", "transliteration": "kariha", "category": "fel"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "خَافَ", "uzbek_translation": "😨 Qo'rqdi", "transliteration": "khaafa", "category": "fel"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "فَرِحَ", "uzbek_translation": "😊 Xursand bo'ldi", "transliteration": "fariha", "category": "fel",
+     "example_sentence_arabic": "فَرِحَ الْوَلَدُ بِالْهَدِيَّةِ", "example_sentence_uzbek": "Bola sovg'adan xursand bo'ldi"},
+    {"level_id": 9, "topic_id": 2, "arabic_word": "حَزِنَ", "uzbek_translation": "😢 Qayg'urdi", "transliteration": "hazina", "category": "fel"},
+
     # ══════════════════════════════════════════════════════════════
-    # MODULE 10 — Fe'llar (2): 1 mavzu
+    # MODULE 10 — Fe'llar (2): 2 mavzu
     # ══════════════════════════════════════════════════════════════
     {"level_id": 10, "topic_id": 1, "arabic_word": "خَرَجَ", "uzbek_translation": "🚶 Chiqdi", "transliteration": "kharaja", "category": "fel",
      "example_sentence_arabic": "خَرَجَ الْوَلَدُ مِنَ الْبَيْتِ", "example_sentence_uzbek": "Bola uydan chiqdi"},
@@ -279,6 +340,20 @@ VOCABULARY = [
     {"level_id": 10, "topic_id": 1, "arabic_word": "لَعِبَ", "uzbek_translation": "⚽ O'ynadi", "transliteration": "la'iba", "category": "fel"},
     {"level_id": 10, "topic_id": 1, "arabic_word": "عَمِلَ", "uzbek_translation": "💼 Ishladi", "transliteration": "'amila", "category": "fel"},
     {"level_id": 10, "topic_id": 1, "arabic_word": "ضَحِكَ", "uzbek_translation": "😄 Kuldi", "transliteration": "dahika", "category": "fel"},
+
+    # Mavzu 2: Fe'llar (muloqot) (8 ta)
+    {"level_id": 10, "topic_id": 2, "arabic_word": "سَأَلَ", "uzbek_translation": "❓ So'radi", "transliteration": "sa'ala", "category": "fel",
+     "example_sentence_arabic": "سَأَلَ الطَّالِبُ الْمُعَلِّمَ", "example_sentence_uzbek": "Talaba o'qituvchidan so'radi"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "أَجَابَ", "uzbek_translation": "✅ Javob berdi", "transliteration": "ajaaba", "category": "fel",
+     "example_sentence_arabic": "أَجَابَ الْمُعَلِّمُ بِوُضُوحٍ", "example_sentence_uzbek": "O'qituvchi aniq javob berdi"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "أَخْبَرَ", "uzbek_translation": "📢 Xabar berdi", "transliteration": "akhbara", "category": "fel"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "نَادَى", "uzbek_translation": "📣 Chaqirdi", "transliteration": "naadaa", "category": "fel"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "رَدَّ", "uzbek_translation": "↩️ Javob qaytardi", "transliteration": "radda", "category": "fel"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "وَعَدَ", "uzbek_translation": "🤝 Va'da berdi", "transliteration": "wa'ada", "category": "fel",
+     "example_sentence_arabic": "وَعَدَ بِالْمُسَاعَدَةِ", "example_sentence_uzbek": "Yordam berishga va'da berdi"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "شَكَرَ", "uzbek_translation": "🙏 Minnatdorlik bildirdi", "transliteration": "shakara", "category": "fel"},
+    {"level_id": 10, "topic_id": 2, "arabic_word": "اعْتَذَرَ", "uzbek_translation": "😔 Uzr so'radi", "transliteration": "i'tazara", "category": "fel",
+     "example_sentence_arabic": "اعْتَذَرَ عَنِ التَّأَخُّرِ", "example_sentence_uzbek": "Kechikgani uchun uzr so'radi"},
 ]
 
 

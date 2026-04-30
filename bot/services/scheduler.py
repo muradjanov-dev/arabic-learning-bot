@@ -13,6 +13,8 @@ from bot.services.gamification import get_daily_shijoat, shijoat_pin_text
 from bot.utils.messages import (
     REMINDER_MESSAGES, TRIAL_NOTIFICATION,
     SUBSCRIPTION_EXPIRED, SUBSCRIPTION_EXPIRES_SOON,
+    DAILY_GOAL_PROGRESS, DAILY_GOAL_DONE,
+    LEADERBOARD_HEADER,
 )
 from bot.keyboards.main_kb import renew_subscription_kb, main_menu_kb
 
@@ -36,6 +38,8 @@ async def reset_shijoat(session_factory: async_sessionmaker, bot: Bot) -> None:
                     user.user_id,
                     shijoat_points=new_shijoat,
                     last_shijoat_reset=datetime.utcnow(),
+                    daily_lessons_done=0,
+                    last_daily_reset=datetime.utcnow(),
                 )
                 if user.shijoat_pin_id:
                     try:
@@ -198,10 +202,184 @@ async def send_reminders(session_factory: async_sessionmaker, bot: Bot) -> None:
             logger.error(f"Reminder send failed: {e}")
 
 
+async def send_daily_goal_reminder(session_factory: async_sessionmaker, bot: Bot) -> None:
+    """At 15:00 — remind users who haven't completed 3 lessons yet."""
+    logger.info("Sending daily goal reminders...")
+    async with session_factory() as session:
+        try:
+            from sqlalchemy import select
+            from bot.database.models import User
+
+            result = await session.execute(
+                select(User).where(
+                    User.is_registered == True,
+                    User.is_banned == False,
+                    User.is_notification_enabled == True,
+                    User.daily_lessons_done < 3,
+                )
+            )
+            users = result.scalars().all()
+
+            progress_msgs = {
+                0: ("😴", "Hali birorta dars qilmadingiz. Boshlash vaqti!"),
+                1: ("💪", "Zo'r start! Yana 2 ta dars qoldi."),
+                2: ("🔥", "Deyarli yetib keldingiz! Yana 1 ta dars qoldi."),
+            }
+
+            sent = 0
+            for user in users:
+                done = getattr(user, "daily_lessons_done", 0) or 0
+                emoji, msg = progress_msgs.get(done, ("📚", "Darsni davom ettiring!"))
+                try:
+                    await bot.send_message(
+                        user.user_id,
+                        DAILY_GOAL_PROGRESS.format(done=done, emoji=emoji, msg=msg),
+                    )
+                    sent += 1
+                except Exception:
+                    pass
+            logger.info(f"Daily goal reminders sent to {sent}/{len(users)} users.")
+        except Exception as e:
+            logger.error(f"Daily goal reminder failed: {e}")
+
+
+async def send_evening_encouragement(session_factory: async_sessionmaker, bot: Bot) -> None:
+    """At 20:00 — congratulate users who completed 3+ lessons today."""
+    logger.info("Sending evening encouragement...")
+    async with session_factory() as session:
+        try:
+            from sqlalchemy import select
+            from bot.database.models import User
+
+            result = await session.execute(
+                select(User).where(
+                    User.is_registered == True,
+                    User.is_banned == False,
+                    User.is_notification_enabled == True,
+                    User.daily_lessons_done >= 3,
+                )
+            )
+            users = result.scalars().all()
+
+            sent = 0
+            for user in users:
+                try:
+                    await bot.send_message(user.user_id, DAILY_GOAL_DONE)
+                    sent += 1
+                except Exception:
+                    pass
+            logger.info(f"Evening encouragement sent to {sent}/{len(users)} users.")
+        except Exception as e:
+            logger.error(f"Evening encouragement failed: {e}")
+
+
+async def _send_period_leaderboard(
+    session_factory: async_sessionmaker,
+    bot: Bot,
+    period: str,
+    period_label: str,
+    since: datetime,
+) -> None:
+    """Broadcast period leaderboard to all users."""
+    from sqlalchemy import select, and_, func as sqlfunc
+    from bot.database.models import User, Lesson
+
+    async with session_factory() as session:
+        try:
+            result = await session.execute(
+                select(
+                    Lesson.user_id,
+                    sqlfunc.sum(Lesson.xp_earned).label("period_xp"),
+                )
+                .where(
+                    and_(
+                        Lesson.is_completed == True,
+                        Lesson.completed_at >= since,
+                    )
+                )
+                .group_by(Lesson.user_id)
+                .order_by(sqlfunc.sum(Lesson.xp_earned).desc())
+                .limit(10)
+            )
+            rows = result.fetchall()
+            if not rows:
+                return
+
+            user_ids = [r[0] for r in rows]
+            users_result = await session.execute(
+                select(User).where(User.user_id.in_(user_ids))
+            )
+            users_map = {u.user_id: u for u in users_result.scalars().all()}
+
+            medals = ["🥇", "🥈", "🥉"] + ["🏅"] * 7
+            text = LEADERBOARD_HEADER.format(period=period_label)
+            for i, (uid, xp) in enumerate(rows):
+                u = users_map.get(uid)
+                name = (u.full_name if u else None) or "Noma'lum"
+                streak = u.streak_days if u else 0
+                text += f"{medals[i]} {name} — {xp} 💎  🔥{streak}\n"
+
+            # Send to all registered users
+            all_users_result = await session.execute(
+                select(User).where(
+                    User.is_registered == True,
+                    User.is_banned == False,
+                    User.is_notification_enabled == True,
+                )
+            )
+            all_users = all_users_result.scalars().all()
+
+            # Use congrat_kb for top user if available
+            top_uid = rows[0][0] if rows else None
+            top_user = users_map.get(top_uid)
+            kb = None
+            if top_user:
+                # No specific achievement key for leaderboard, just use a simple kb
+                from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+                kb = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(
+                        text=f"🎊 {top_user.full_name or 'G`olibni'} tabrikladim!",
+                        callback_data=f"congrat:{top_uid}:leaderboard_{period}",
+                    )]
+                ])
+
+            for u in all_users:
+                try:
+                    await bot.send_message(u.user_id, text, reply_markup=kb)
+                except Exception:
+                    pass
+
+            logger.info(f"{period_label} leaderboard broadcast sent to {len(all_users)} users.")
+        except Exception as e:
+            logger.error(f"Period leaderboard broadcast failed: {e}")
+
+
+async def send_daily_leaderboard(session_factory: async_sessionmaker, bot: Bot) -> None:
+    """23:55 — daily top 10 leaderboard."""
+    now = datetime.utcnow()
+    since = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    await _send_period_leaderboard(session_factory, bot, "daily", "Kunlik", since)
+
+
+async def send_weekly_leaderboard(session_factory: async_sessionmaker, bot: Bot) -> None:
+    """Sunday 23:55 — weekly top 10 leaderboard."""
+    now = datetime.utcnow()
+    since = now - timedelta(days=now.weekday())
+    since = since.replace(hour=0, minute=0, second=0, microsecond=0)
+    await _send_period_leaderboard(session_factory, bot, "weekly", "Haftalik", since)
+
+
+async def send_monthly_leaderboard(session_factory: async_sessionmaker, bot: Bot) -> None:
+    """Last day of month 23:55 — monthly top 10 leaderboard."""
+    now = datetime.utcnow()
+    since = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    await _send_period_leaderboard(session_factory, bot, "monthly", "Oylik", since)
+
+
 def setup_scheduler(bot: Bot, session_factory: async_sessionmaker) -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler(timezone="Asia/Tashkent")
 
-    # 00:01 — Shijoat reset
+    # 00:01 — Shijoat reset + daily_lessons_done reset
     scheduler.add_job(
         reset_shijoat,
         CronTrigger(hour=0, minute=1, timezone="Asia/Tashkent"),
@@ -237,12 +415,57 @@ def setup_scheduler(bot: Bot, session_factory: async_sessionmaker) -> AsyncIOSch
         replace_existing=True,
     )
 
+    # 15:00 — Daily goal reminder (for users with < 3 lessons done)
+    scheduler.add_job(
+        send_daily_goal_reminder,
+        CronTrigger(hour=15, minute=0, timezone="Asia/Tashkent"),
+        args=[session_factory, bot],
+        id="daily_goal_reminder",
+        replace_existing=True,
+    )
+
     # 19:00 — Daily reminders to inactive users
     scheduler.add_job(
         send_reminders,
         CronTrigger(hour=19, minute=0, timezone="Asia/Tashkent"),
         args=[session_factory, bot],
         id="daily_reminder",
+        replace_existing=True,
+    )
+
+    # 20:00 — Evening encouragement for users who completed 3+ lessons
+    scheduler.add_job(
+        send_evening_encouragement,
+        CronTrigger(hour=20, minute=0, timezone="Asia/Tashkent"),
+        args=[session_factory, bot],
+        id="evening_encouragement",
+        replace_existing=True,
+    )
+
+    # 23:55 — Daily leaderboard broadcast
+    scheduler.add_job(
+        send_daily_leaderboard,
+        CronTrigger(hour=23, minute=55, timezone="Asia/Tashkent"),
+        args=[session_factory, bot],
+        id="daily_leaderboard",
+        replace_existing=True,
+    )
+
+    # Sunday 23:55 — Weekly leaderboard broadcast
+    scheduler.add_job(
+        send_weekly_leaderboard,
+        CronTrigger(day_of_week="sun", hour=23, minute=55, timezone="Asia/Tashkent"),
+        args=[session_factory, bot],
+        id="weekly_leaderboard",
+        replace_existing=True,
+    )
+
+    # Last day of month 23:55 — Monthly leaderboard broadcast
+    scheduler.add_job(
+        send_monthly_leaderboard,
+        CronTrigger(day="last", hour=23, minute=55, timezone="Asia/Tashkent"),
+        args=[session_factory, bot],
+        id="monthly_leaderboard",
         replace_existing=True,
     )
 

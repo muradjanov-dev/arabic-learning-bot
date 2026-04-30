@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import settings
 from bot.database.repository import UserRepository, LessonRepository, ProgressRepository, VocabularyRepository
-from bot.keyboards.main_kb import confirm_lesson_kb, upsell_kb, main_menu_kb
+from bot.keyboards.main_kb import confirm_lesson_kb, upsell_kb, main_menu_kb, congrat_kb
 from bot.keyboards.lesson_kb import (
     choice_question_kb, jumbled_kb, lesson_result_kb,
     AnswerCb, JumbledWordCb, JumbledActionCb,
@@ -18,7 +18,7 @@ from bot.keyboards.lesson_kb import (
 from bot.services.lesson_service import build_lesson_questions, check_topic_complete
 from bot.services.gamification import (
     calculate_xp, update_streak, check_new_achievements,
-    ACHIEVEMENTS, shijoat_pin_text,
+    ACHIEVEMENTS, shijoat_pin_text, TOPIC_NAMES,
 )
 from bot.services.tts import get_audio_input_file, cache_audio_file_id
 from bot.utils.messages import (
@@ -29,6 +29,7 @@ from bot.utils.messages import (
     NEW_WORD_INTRO, PROGRESS_PIN,
     CORRECT_MOTIVATIONS, WRONG_HINTS,
     NO_SHIJOAT, ACHIEVEMENT_EARNED,
+    ACHIEVEMENT_BROADCAST, CONGRAT_SENT, CONGRAT_TOAST,
 )
 from bot.utils.praise import get_praise
 
@@ -106,6 +107,59 @@ async def _update_shijoat_pin(bot: Bot, user, session: AsyncSession) -> None:
         pass
 
 
+async def _broadcast_achievement(
+    bot: Bot,
+    session_factory,
+    achiever_id: int,
+    achiever_name: str,
+    ach_key: str,
+    ach_name: str,
+    ach_desc: str,
+) -> None:
+    """Broadcast achievement to all users except achiever after a 2-second delay."""
+    await asyncio.sleep(2)
+
+    from bot.database.models import User
+    from sqlalchemy import select
+
+    async with session_factory() as session:
+        try:
+            result = await session.execute(
+                select(User).where(
+                    User.is_registered == True,
+                    User.is_banned == False,
+                    User.user_id != achiever_id,
+                )
+            )
+            users = result.scalars().all()
+
+            text = ACHIEVEMENT_BROADCAST.format(
+                name=achiever_name,
+                ach_name=ach_name,
+                ach_desc=ach_desc,
+            )
+            kb = congrat_kb(achiever_id, ach_key)
+
+            for u in users:
+                try:
+                    sent = await bot.send_message(u.user_id, text, reply_markup=kb)
+                    # Schedule auto-delete after 5 minutes
+                    asyncio.create_task(_delayed_delete(bot, u.user_id, sent.message_id, delay=300))
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.error(f"Achievement broadcast failed: {e}")
+
+
+async def _delayed_delete(bot: Bot, chat_id: int, message_id: int, delay: int = 300) -> None:
+    """Delete a message after a delay in seconds."""
+    await asyncio.sleep(delay)
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception:
+        pass
+
+
 # ── Lesson entry ──────────────────────────────────────────────────────────────
 
 @router.callback_query(F.data == "menu:lesson")
@@ -143,13 +197,15 @@ async def lesson_menu(callback: CallbackQuery, user, session: AsyncSession):
     progress_pct = int(mastered_in_topic / total_in_topic * 100)
 
     from bot.services.lesson_service import TOTAL_PER_LESSON
+    topic_name = TOPIC_NAMES.get((user.current_level, current_topic), f"Mavzu {current_topic}")
     text = LESSON_START_CONFIRM.format(
         module=user.current_level,
         topic=current_topic,
+        topic_name=topic_name,
         questions=TOTAL_PER_LESSON,
         cost=settings.LESSON_SHIJOAT_COST,
         shijoat=user.shijoat_points,
-        progress_pct=progress_pct,
+        module_pct=progress_pct,
     )
     await callback.message.edit_text(text, reply_markup=confirm_lesson_kb(user.shijoat_points))
     await callback.answer()
@@ -438,11 +494,16 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
     user_repo = UserRepository(session)
     prog_repo = ProgressRepository(session)
 
+    # Increment daily_lessons_done
+    current_daily = getattr(user, "daily_lessons_done", 0) or 0
+    new_daily = current_daily + 1
+
     await user_repo.update(
         user.user_id,
         current_xp=user.current_xp + xp_earned,
         streak_days=new_streak,
         last_active_date=datetime.utcnow(),
+        daily_lessons_done=new_daily,
     )
 
     lesson_repo = LessonRepository(session)
@@ -468,12 +529,26 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
             level_up_text += MODULE_UP.format(module=new_level, module_title=title)
             level_up_text += LEVEL_UP.format(level=new_level, level_title=title)
 
+    # Count referrals for achievement check
+    from sqlalchemy import select, func as sqlfunc
+    from bot.database.models import User as UserModel
+    ref_count_r = await session.execute(
+        select(sqlfunc.count(UserModel.user_id)).where(
+            UserModel.referred_by == user.user_id
+        )
+    )
+    referral_count = ref_count_r.scalar() or 0
+
     # Achievements
     mastered_total = await prog_repo.count_mastered(user.user_id)
     fresh = await user_repo.get(user.user_id)
     new_ach: list = []
     if fresh:
-        new_ach = check_new_achievements(fresh, correct, total, mastered_total)
+        new_ach = check_new_achievements(
+            fresh, correct, total, mastered_total,
+            referral_count=referral_count,
+            daily_done=new_daily,
+        )
         if new_ach:
             existing = set(filter(None, (fresh.achievements_earned or "").split(",")))
             existing.update(new_ach)
@@ -481,11 +556,10 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
 
     await session.commit()
 
-    # Restore shijoat pin with updated values (no unpin/repin = no system messages in chat)
+    # Restore shijoat pin with updated values
     if pin_id and chat_id:
         shijoat_pin_id = getattr(user, "shijoat_pin_id", None)
         if fresh and pin_id == shijoat_pin_id:
-            # We borrowed the shijoat pin — restore it with updated progress
             try:
                 pct = await _get_module_pct(session, fresh)
                 await callback.bot.edit_message_text(
@@ -501,7 +575,6 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
             except Exception:
                 pass
         else:
-            # Separate lesson pin — delete it entirely (no "Dars yakunlandi!" clutter)
             try:
                 await callback.bot.delete_message(chat_id=chat_id, message_id=pin_id)
             except Exception:
@@ -524,7 +597,7 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
     except Exception:
         await callback.message.answer(result_text, reply_markup=lesson_result_kb())
 
-    # Send achievement pop-ups
+    # Send achievement pop-ups and broadcast
     for ach_key in new_ach:
         ach = ACHIEVEMENTS.get(ach_key)
         if ach:
@@ -533,4 +606,64 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
             except Exception:
                 pass
 
+            # Broadcast achievement to all users after 2-second delay (background task)
+            achiever_name = (fresh.full_name if fresh else None) or "Foydalanuvchi"
+            from bot.database.base import async_session_maker
+            asyncio.create_task(_broadcast_achievement(
+                callback.bot,
+                async_session_maker,
+                user.user_id,
+                achiever_name,
+                ach_key,
+                ach["name"],
+                ach["desc"],
+            ))
+
     await callback.answer()
+
+
+# ── Congrat handler ───────────────────────────────────────────────────────────
+
+@router.callback_query(F.data.startswith("congrat:"))
+async def handle_congrat(callback: CallbackQuery, session: AsyncSession):
+    parts = callback.data.split(":")
+    if len(parts) < 3:
+        await callback.answer("Xato ma'lumot", show_alert=True)
+        return
+
+    try:
+        target_user_id = int(parts[1])
+        ach_key = parts[2]
+    except ValueError:
+        await callback.answer("Xato ma'lumot", show_alert=True)
+        return
+
+    # Get sender name from DB
+    repo = UserRepository(session)
+    sender_user = await repo.get(callback.from_user.id)
+    sender_name = (sender_user.full_name if sender_user else None) or "Kimdir"
+
+    ach = ACHIEVEMENTS.get(ach_key)
+    ach_name = ach["name"] if ach else ach_key
+
+    # Send congrat to the achievement owner
+    try:
+        congrat_msg = await callback.bot.send_message(
+            target_user_id,
+            CONGRAT_SENT.format(sender_name=sender_name, ach_name=ach_name),
+        )
+        # Schedule auto-delete after 5 minutes
+        asyncio.create_task(_delayed_delete(callback.bot, target_user_id, congrat_msg.message_id, delay=300))
+    except Exception:
+        pass
+
+    # Show toast to clicker
+    await callback.answer(CONGRAT_TOAST, show_alert=True)
+
+    # Delete or edit the broadcast message that was clicked
+    try:
+        toast_msg = await callback.message.edit_reply_markup(reply_markup=None)
+        if toast_msg:
+            asyncio.create_task(_delayed_delete(callback.bot, callback.message.chat.id, callback.message.message_id, delay=300))
+    except Exception:
+        pass
