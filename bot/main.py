@@ -95,6 +95,8 @@ async def _run_column_migrations() -> None:
     migrations = [
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS achievements_earned TEXT DEFAULT ''",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS shijoat_pin_id INTEGER",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS current_topic INTEGER NOT NULL DEFAULT 1",
+        "ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS topic_id INTEGER NOT NULL DEFAULT 1",
     ]
     async with engine.begin() as conn:
         for sql in migrations:

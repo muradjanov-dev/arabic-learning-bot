@@ -9,20 +9,20 @@ from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import settings
-from bot.database.repository import UserRepository, LessonRepository, ProgressRepository
+from bot.database.repository import UserRepository, LessonRepository, ProgressRepository, VocabularyRepository
 from bot.keyboards.main_kb import confirm_lesson_kb, upsell_kb, main_menu_kb
 from bot.keyboards.lesson_kb import (
     choice_question_kb, jumbled_kb, lesson_result_kb,
     AnswerCb, JumbledWordCb, JumbledActionCb,
 )
-from bot.services.lesson_service import build_lesson_questions
+from bot.services.lesson_service import build_lesson_questions, check_topic_complete
 from bot.services.gamification import (
     calculate_xp, update_streak, check_new_achievements,
-    ACHIEVEMENTS, LEVEL_TITLES, shijoat_pin_text,
+    ACHIEVEMENTS, shijoat_pin_text,
 )
 from bot.services.tts import get_audio_input_file, cache_audio_file_id
 from bot.utils.messages import (
-    LESSON_START_CONFIRM, LESSON_COMPLETE, LEVEL_UP,
+    LESSON_START_CONFIRM, LESSON_COMPLETE, LEVEL_UP, TOPIC_UP, MODULE_UP,
     QUESTION_VISUAL, QUESTION_AUDIO, QUESTION_JUMBLED,
     JUMBLED_SELECTED, JUMBLED_EMPTY,
     QUESTION_HEADER, QUESTION_HEADER_NEW,
@@ -92,13 +92,34 @@ async def lesson_menu(callback: CallbackQuery, user, session: AsyncSession):
         await callback.answer()
         return
 
-    prog_repo = ProgressRepository(session)
-    level_data = await prog_repo.get_progress_by_level(user.user_id)
-    lp = level_data.get(user.current_level, {"total": 1, "mastered": 0})
-    progress_pct = int(lp["mastered"] / max(lp["total"], 1) * 100)
+    current_topic = getattr(user, "current_topic", 1)
+    vocab_repo = VocabularyRepository(session)
+    topic_words = await vocab_repo.get_words_for_topic(user.current_level, current_topic)
+    total_in_topic = max(len(topic_words), 1)
 
+    from sqlalchemy import select, and_
+    from bot.database.models import UserProgress
+    if topic_words:
+        ids = [w.word_id for w in topic_words]
+        from sqlalchemy import func as sqlfunc
+        r = await session.execute(
+            select(sqlfunc.count(UserProgress.id)).where(and_(
+                UserProgress.user_id == user.user_id,
+                UserProgress.word_id.in_(ids),
+                UserProgress.mastery_level >= 3,
+            ))
+        )
+        mastered_in_topic = r.scalar() or 0
+    else:
+        mastered_in_topic = 0
+
+    progress_pct = int(mastered_in_topic / total_in_topic * 100)
+
+    from bot.services.lesson_service import TOTAL_PER_LESSON
     text = LESSON_START_CONFIRM.format(
-        questions=settings.QUESTIONS_PER_LESSON,
+        module=user.current_level,
+        topic=current_topic,
+        questions=TOTAL_PER_LESSON,
         cost=settings.LESSON_SHIJOAT_COST,
         shijoat=user.shijoat_points,
         progress_pct=progress_pct,
@@ -113,7 +134,8 @@ async def lesson_start(callback: CallbackQuery, state: FSMContext, user, session
         await callback.answer("Shijoatingiz yetarli emas!", show_alert=True)
         return
 
-    questions = await build_lesson_questions(session, user.user_id, user.current_level)
+    current_topic = getattr(user, "current_topic", 1)
+    questions = await build_lesson_questions(session, user.user_id, user.current_level, current_topic)
     if not questions:
         await callback.message.edit_text(
             "Bu darajada so'zlar topilmadi. Admin so'z qo'shishi kutilmoqda.",
@@ -396,15 +418,25 @@ async def _finish_lesson(callback: CallbackQuery, state: FSMContext, session: As
     lesson_repo = LessonRepository(session)
     await lesson_repo.complete(lesson_id, correct, xp_earned)
 
-    # Auto level-up: 3 good lessons (70%+) at current level
+    # Topic / module advancement
+    current_topic = getattr(user, "current_topic", 1)
     level_up_text = ""
-    if correct >= total * 0.7 and user.current_level < MAX_LEVEL:
-        good_count = await lesson_repo.count_good_lessons_at_level(user.user_id, user.current_level)
-        if good_count >= 3:
+
+    topic_done = await check_topic_complete(session, user.user_id, user.current_level, current_topic)
+    if topic_done:
+        vocab_repo = VocabularyRepository(session)
+        max_topic = await vocab_repo.count_topics_in_level(user.current_level)
+        if current_topic < max_topic:
+            new_topic = current_topic + 1
+            await user_repo.update(user.user_id, current_topic=new_topic)
+            level_up_text += TOPIC_UP.format(topic=new_topic)
+        elif user.current_level < MAX_LEVEL:
             new_level = user.current_level + 1
-            await user_repo.update(user.user_id, current_level=new_level)
-            title = LEVEL_TITLES[new_level] if new_level < len(LEVEL_TITLES) else ""
-            level_up_text = LEVEL_UP.format(level=new_level, level_title=title)
+            from bot.services.gamification import LEVEL_TITLES as _LT
+            title = _LT[new_level] if new_level < len(_LT) else f"Modul {new_level}"
+            await user_repo.update(user.user_id, current_level=new_level, current_topic=1)
+            level_up_text += MODULE_UP.format(module=new_level, module_title=title)
+            level_up_text += LEVEL_UP.format(level=new_level, level_title=title)
 
     # Achievements
     mastered_total = await prog_repo.count_mastered(user.user_id)

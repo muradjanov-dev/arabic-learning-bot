@@ -49,6 +49,7 @@ class User(Base):
     trial_given = Column(Boolean, default=False, nullable=False)
     achievements_earned = Column(Text, nullable=True, default="")
     shijoat_pin_id = Column(Integer, nullable=True)
+    current_topic = Column(Integer, nullable=False, default=1)
 
     progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")
     lessons = relationship("Lesson", back_populates="user", cascade="all, delete-orphan")
@@ -74,6 +75,7 @@ class Vocabulary(Base):
     telegram_audio_file_id = Column(String(500), nullable=True)
     telegram_photo_file_id = Column(String(500), nullable=True)
     difficulty = Column(Integer, default=1)
+    topic_id = Column(Integer, nullable=False, default=1)
     is_active = Column(Boolean, default=True, nullable=False)
 
     progress = relationship("UserProgress", back_populates="vocabulary")

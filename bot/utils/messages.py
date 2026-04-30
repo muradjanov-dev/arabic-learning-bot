@@ -1,8 +1,8 @@
 WELCOME = (
     "Assalomu alaykum! 🌟\n\n"
     "Arab tili o'rganish safariga xush kelibsiz!\n"
-    "Duolingo uslubida — qiziqarli, oson va samarali!\n"
-    "10 ta daraja, 100+ so'z, real talaffuz 🚀\n\n"
+    "Noodatiy uslubda — qiziqarli, oson va samarali!\n"
+    "10 ta daraja, 500+ so'z, real talaffuz 🚀\n\n"
     "Avval bir-ikki savolga javob bering 😊"
 )
 
@@ -27,10 +27,10 @@ NO_SHIJOAT = (
 
 LESSON_START_CONFIRM = (
     "<b>✨ Yangi dars tayyorlanmoqda!</b>\n\n"
+    "📦 Modul {module}  |  📚 Mavzu {topic}\n"
     "📝 {questions} ta savol\n"
-    "⚡ {cost} Shijoat sarflanadi\n"
-    "💰 Sizda: <b>{shijoat}</b> Shijoat\n"
-    "📊 Joriy daraja: <b>{progress_pct}%</b> yakunlangan\n\n"
+    "⚡ {cost} Shijoat sarflanadi  |  💰 Sizda: <b>{shijoat}</b>\n"
+    "📊 Mavzu: <b>{progress_pct}%</b> o'zlashtirilgan\n\n"
     "Tayyor bo'lsangiz — ketdik! 🚀"
 )
 
@@ -45,6 +45,19 @@ LEVEL_UP = (
     "\n\n🚀 <b>Yangi daraja ochildi!</b>\n"
     "Tabriklaymiz — siz endi <b>{level}-darajada!</b>\n"
     "<i>{level_title}</i>"
+)
+
+TOPIC_UP = (
+    "\n\n🎯 <b>Mavzu yakunlandi!</b> 🎉\n"
+    "Zo'r ish! Endi <b>Mavzu {topic}</b> ochildi.\n"
+    "Yangi so'zlar, yangi imkoniyatlar — old'a! 💪"
+)
+
+MODULE_UP = (
+    "\n\n🏆 <b>Modul yakunlandi!</b> 🎊\n"
+    "Siz <b>{module}-modulni</b> muvaffaqiyatli tamomladingiz!\n"
+    "<i>{module_title}</i>\n\n"
+    "Yangi modul siz uchun ochildi. Davom eting! 🚀"
 )
 
 # Question templates
@@ -68,7 +81,7 @@ CORRECT_MOTIVATIONS = [
     "Siz uddalaysiz! 💎", "Ofarin! 👏", "Kuchli! 💥",
     "Daho! 🧠", "Zo'r odam! 🤩", "To'g'ri! ✅",
     "Cho'qqiga yaqinlashmoqdasiz! ⛰️", "Bilim — kuch! 📚",
-    "Aql sinami! 🔥", "Ishonaman sizga! 🥇",
+    "Aql sinami! 🔥", "Ishonaman sizga! 🥇", "Iye-Iye qoyile! 🥇".
 ]
 
 WRONG_HINTS = [
@@ -111,7 +124,7 @@ SUBSCRIPTION_INFO = (
     "💎 <b>Premium</b> — {premium_price}:\n"
     "• 1,000 Shijoat/kun\n"
     "• Barcha darslar ochiq\n\n"
-    "♾️ <b>Cheksiz</b> — {unlimited_price}:\n"
+    "♾️ <b>Cheksiz (deyarli)</b> — {unlimited_price}:\n"
     "• 9,999 Shijoat/kun (deyarli cheksiz)\n"
     "• Barcha imkoniyatlar\n\n"
     "Quyidan tanlang:"
@@ -124,18 +137,18 @@ PAYMENT_INSTRUCTIONS = (
     "🏦 Karta raqami: <code>{card}</code>\n"
     "👤 Egasi: <b>{holder}</b>\n\n"
     "To'lovni amalga oshirgandan so'ng, to'lov chekini (screenshot yoki rasm) "
-    "yuboring. Admin 24 soat ichida tasdiqlaydi."
+    "yuboring. Admin tez orada tasdiqlaydi."
 )
 
 PAYMENT_RECEIPT_PROMPT = "To'lov cheki rasmini yuboring:\n\n(Bankdan screenshot yoki karta ko'chirmasi)"
-PAYMENT_SENT = "Chekingiz adminga yuborildi! ✅\n\nTez orada tasdiqlanadi. Sabr qiling. 🙏"
+PAYMENT_SENT = "Chekingiz adminga yuborildi! ✅\n\nTez orada tasdiqlanadi. Iltimos biroz kuting. 🙏"
 
 PAYMENT_APPROVED = (
     "Tabriklaymiz! 🎉\n\n"
     "<b>{tier_name}</b> obunangiz faollashtirildi!\n"
     "📅 Muddati: <b>{expires}</b> gacha\n"
     "⚡ Shijoat: <b>{shijoat}/kun</b>\n\n"
-    "Arab tili o'rganishda muvaffaqiyatlar! 💪🌟"
+    "Arab tili o'rganishda muvaffaqiyatlar tilaymiz! 💪🌟"
 )
 
 PAYMENT_DECLINED = (
@@ -159,22 +172,22 @@ ADMIN_PAYMENT_DECLINED_MARK = "❌ RAD ETILDI — {name} ({user_id})"
 
 TRIAL_NOTIFICATION = (
     "Salom, {name}! 🎁\n\n"
-    "Botimizga keldingiz — siz uchun <b>2 kunlik Premium sinov</b> "
+    "Arab tili o'rganish loyihasiga xush kelibsiz — siz uchun <b>2 kunlik Premium sinov</b> "
     "bepul berildi!\n\n"
     "⚡ Bugun <b>1,000 Shijoat</b> bilan dars qiling!\n"
     "📅 Sinov muddati: bugun va ertaga\n\n"
-    "Arab tilini o'rganishni davom ettiring! 💪"
+    "Arab tilini o'rganishda muvaffaqiyatlar tilaymiz! 💪🌟"
 )
 
 SUBSCRIPTION_EXPIRED = (
     "Sizning <b>{tier_name}</b> obunangiz tugadi. ⏰\n\n"
-    "Endi kuniga 100 Shijoat bilan davom etasiz.\n\n"
-    "Streak va natijalaringizni saqlab, obunani yangilang! 🔥"
+    "Endi kuniga 100 Shijoat bilan davom etamiz.\n\n"
+    "Streak va natijalaringizni saqlab, obunani yangilashingiz mumkin! 🔥"
 )
 
 SUBSCRIPTION_EXPIRES_SOON = (
     "Sizning <b>{tier_name}</b> obunangiz <b>{days}</b> kunda tugaydi! ⏰\n\n"
-    "Obunani yangilab, o'rganishni uzluksiz davom ettiring. 💪"
+    "Obunani yangilab, o'rganishni uzluksiz davom ettiring qadrligim. 💪"
 )
 
 REMINDER_MESSAGES = [
@@ -234,7 +247,7 @@ ADMIN_USER_DETAIL = (
     "👤 Ism: {name}\n"
     "🔗 Username: @{username}\n"
     "🎂 Yosh: {age}\n"
-    "📚 Arab darajasi: {arabic_level}\n"
+    "📚 Arab tili darajasi: {arabic_level}\n"
     "🏅 Kurs darajasi: {level}/10\n"
     "⭐ XP: {xp}\n"
     "🔥 Streak: {streak} kun\n"

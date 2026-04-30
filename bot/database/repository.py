@@ -173,6 +173,26 @@ class VocabularyRepository:
         )
         return [row[0] for row in result.fetchall()]
 
+    async def get_words_for_topic(self, level_id: int, topic_id: int) -> List[Vocabulary]:
+        result = await self.session.execute(
+            select(Vocabulary).where(
+                and_(
+                    Vocabulary.level_id == level_id,
+                    Vocabulary.topic_id == topic_id,
+                    Vocabulary.is_active == True,
+                )
+            )
+        )
+        return list(result.scalars().all())
+
+    async def count_topics_in_level(self, level_id: int) -> int:
+        result = await self.session.execute(
+            select(func.max(Vocabulary.topic_id)).where(
+                and_(Vocabulary.level_id == level_id, Vocabulary.is_active == True)
+            )
+        )
+        return result.scalar() or 1
+
     async def count_total(self) -> int:
         result = await self.session.execute(select(func.count(Vocabulary.word_id)))
         return result.scalar() or 0
