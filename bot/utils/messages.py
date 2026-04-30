@@ -50,7 +50,7 @@ LEVEL_UP = (
 TOPIC_UP = (
     "\n\n🎯 <b>Mavzu yakunlandi!</b> 🎉\n"
     "Zo'r ish! Endi <b>Mavzu {topic}</b> ochildi.\n"
-    "Yangi so'zlar, yangi imkoniyatlar — old'a! 💪"
+    "Yangi so'zlar, yangi imkoniyatlar — olg'a! 💪"
 )
 
 MODULE_UP = (
@@ -81,7 +81,7 @@ CORRECT_MOTIVATIONS = [
     "Siz uddalaysiz! 💎", "Ofarin! 👏", "Kuchli! 💥",
     "Daho! 🧠", "Zo'r odam! 🤩", "To'g'ri! ✅",
     "Cho'qqiga yaqinlashmoqdasiz! ⛰️", "Bilim — kuch! 📚",
-    "Aql sinami! 🔥", "Ishonaman sizga! 🥇", "Iye-Iye qoyile! 🥇".
+    "Aql sinami! 🔥", "Ishonaman sizga! 🥇", "Iye-Iye qoyile! 🥇",
 ]
 
 WRONG_HINTS = [
