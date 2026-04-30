@@ -64,7 +64,7 @@ async def _notify_admins_startup(bot: Bot) -> None:
 
 
 async def _auto_seed_vocabulary() -> None:
-    """Populate vocabulary; wipe and re-seed if old religious content is detected."""
+    """Populate vocabulary; wipe and re-seed if old/religious/single-topic data detected."""
     from sqlalchemy import select, func, delete
     from bot.database.models import Vocabulary
     from scripts.seed_data import VOCABULARY, RELIGIOUS_CATEGORIES, RELIGIOUS_WORDS
@@ -77,12 +77,16 @@ async def _auto_seed_vocabulary() -> None:
                 (w.category in RELIGIOUS_CATEGORIES or w.arabic_word in RELIGIOUS_WORDS)
                 for w in sample
             )
-            if has_religious:
+            max_topic = (await session.execute(
+                select(func.max(Vocabulary.topic_id))
+            )).scalar() or 1
+            if has_religious or max_topic <= 1:
+                reason = "religious content" if has_religious else "no topic differentiation (old data)"
                 await session.execute(delete(Vocabulary))
                 await session.commit()
-                logger.info("Wiped old religious vocabulary — re-seeding with clean content.")
+                logger.info(f"Wiped old vocabulary ({reason}) — re-seeding.")
             else:
-                logger.info(f"Vocabulary already populated ({count} words).")
+                logger.info(f"Vocabulary already populated ({count} words, max topic={max_topic}).")
                 return
         for item in VOCABULARY:
             session.add(Vocabulary(**item))
