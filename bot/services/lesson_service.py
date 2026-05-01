@@ -61,16 +61,41 @@ async def build_lesson_questions(
     )
     review_words = list(review_result.scalars().all())
 
-    # ── Step 4: combine — if still empty fall back to whole topic ────────────
+    # ── Step 4: combine ───────────────────────────────────────────────────────
     combined = selected_new + review_words
     if not combined:
         combined = list(topic_words)
+
+    # ── Step 5: always pad to TOTAL_PER_LESSON ───────────────────────────────
+    # First pad with mastered words from current topic (good for retention)
+    if len(combined) < TOTAL_PER_LESSON:
+        selected_ids = {w.word_id for w in combined}
+        extra_topic = [w for w in topic_words if w.word_id not in selected_ids]
+        random.shuffle(extra_topic)
+        combined += extra_topic[:TOTAL_PER_LESSON - len(combined)]
+
+    # Then pad with any active words from current or earlier levels
+    if len(combined) < TOTAL_PER_LESSON:
+        needed = TOTAL_PER_LESSON - len(combined)
+        selected_ids = {w.word_id for w in combined}
+        fallback_result = await session.execute(
+            select(Vocabulary)
+            .where(and_(
+                Vocabulary.is_active == True,
+                Vocabulary.level_id <= level_id,
+                ~Vocabulary.word_id.in_(selected_ids),
+            ))
+            .order_by(func.random())
+            .limit(needed)
+        )
+        combined += list(fallback_result.scalars().all())
+
     random.shuffle(combined)
     words = combined[:TOTAL_PER_LESSON]
 
     seen_ids = set(topic_progress.keys())
 
-    # ── Step 5: build question dicts ─────────────────────────────────────────
+    # ── Step 6: build question dicts ─────────────────────────────────────────
     questions: List[Dict[str, Any]] = []
     for word in words:
         is_new = word.word_id not in seen_ids

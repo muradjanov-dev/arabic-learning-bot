@@ -8,3 +8,4 @@ python-dotenv==1.0.1
 aiohttp==3.10.10
 greenlet==3.1.1
 gTTS==2.5.3
+edge-tts>=6.1.12

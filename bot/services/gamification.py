@@ -251,8 +251,8 @@ def tier_display(tier: SubscriptionTier) -> str:
 
 def shijoat_pin_text(shijoat: int, module: int, topic: int, pct: int, tier: SubscriptionTier) -> str:
     tier_icon = {"free": "🆓", "premium": "💎", "unlimited": "♾️"}.get(tier.value, "🆓")
-    bar_filled = int(pct / 100 * 8)
-    bar = "█" * bar_filled + "░" * (8 - bar_filled)
+    bar_filled = int(pct / 100 * 6)
+    bar = "🟩" * bar_filled + "⬜" * (6 - bar_filled)
     return (
         f"⚡ <b>Shijoat: {shijoat}</b>  ·  {tier_icon}\n"
         f"📊 {module}-modul T{topic}: {bar} {pct}%"

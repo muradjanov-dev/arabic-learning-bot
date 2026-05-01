@@ -282,13 +282,14 @@ async def _send_question(
     data = await state.get_data()
     idx = data["current_idx"]
     total = len(data["questions"])
-    shijoat = data.get("shijoat", 0)
+    correct_count = data.get("correct_count", 0)
+    olmos = correct_count * 5  # XP_PER_CORRECT
     msg_ids = list(data.get("msg_ids", []))
 
     header = (
-        QUESTION_HEADER_NEW.format(idx=idx + 1, total=total, shijoat=shijoat)
+        QUESTION_HEADER_NEW.format(idx=idx + 1, total=total, olmos=olmos)
         if q.get("is_new")
-        else QUESTION_HEADER.format(idx=idx + 1, total=total, shijoat=shijoat)
+        else QUESTION_HEADER.format(idx=idx + 1, total=total, olmos=olmos)
     )
     intro = (
         NEW_WORD_INTRO.format(arabic=q["arabic_word"], uzbek=q["uzbek_translation"]) + "\n"

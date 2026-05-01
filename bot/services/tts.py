@@ -10,10 +10,27 @@ from bot.database.models import Vocabulary
 
 logger = logging.getLogger(__name__)
 
+# Best Arabic neural voice via edge-tts (Microsoft)
+ARABIC_VOICE = "ar-SA-ZariyahNeural"
+
 
 async def generate_arabic_audio(text: str) -> Optional[io.BytesIO]:
-    """Generate Arabic TTS audio as MP3 BytesIO. Returns None on failure."""
-    def _generate() -> Optional[io.BytesIO]:
+    """Generate Arabic TTS audio using edge-tts (high quality). Falls back to gTTS."""
+    try:
+        import edge_tts
+        communicate = edge_tts.Communicate(text, voice=ARABIC_VOICE)
+        buf = io.BytesIO()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                buf.write(chunk["data"])
+        if buf.tell() > 0:
+            buf.seek(0)
+            return buf
+    except Exception as e:
+        logger.warning(f"edge-tts failed for '{text}': {e}, falling back to gTTS")
+
+    # Fallback: gTTS
+    def _gtts() -> Optional[io.BytesIO]:
         try:
             from gtts import gTTS
             buf = io.BytesIO()
@@ -21,15 +38,14 @@ async def generate_arabic_audio(text: str) -> Optional[io.BytesIO]:
             tts.write_to_fp(buf)
             buf.seek(0)
             return buf
-        except Exception as e:
-            logger.error(f"gTTS generation failed for '{text}': {e}")
+        except Exception as ex:
+            logger.error(f"gTTS also failed for '{text}': {ex}")
             return None
 
-    return await asyncio.to_thread(_generate)
+    return await asyncio.to_thread(_gtts)
 
 
 async def get_audio_input_file(arabic_word: str, word_id: int) -> Optional[BufferedInputFile]:
-    """Generate fresh TTS audio as BufferedInputFile ready to be sent."""
     audio_buf = await generate_arabic_audio(arabic_word)
     if not audio_buf:
         return None
@@ -37,7 +53,6 @@ async def get_audio_input_file(arabic_word: str, word_id: int) -> Optional[Buffe
 
 
 async def cache_audio_file_id(session: AsyncSession, word_id: int, file_id: str) -> None:
-    """Save Telegram file_id back to vocabulary so we don't regenerate next time."""
     try:
         await session.execute(
             update(Vocabulary)

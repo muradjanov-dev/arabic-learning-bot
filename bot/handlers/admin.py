@@ -75,7 +75,7 @@ async def cmd_resetme(message: Message, session: AsyncSession):
         await message.answer("Ruxsat yo'q.")
         return
     from sqlalchemy import delete
-    from bot.database.models import UserProgress, Lesson as LessonModel
+    from bot.database.models import UserProgress, Lesson as LessonModel, SubscriptionTier
     uid = message.from_user.id
     await session.execute(delete(UserProgress).where(UserProgress.user_id == uid))
     await session.execute(delete(LessonModel).where(LessonModel.user_id == uid))
@@ -92,6 +92,10 @@ async def cmd_resetme(message: Message, session: AsyncSession):
         daily_lessons_done=0,
         referred_by=None,
         last_active_date=None,
+        subscription_tier=SubscriptionTier.FREE,
+        subscription_expires=None,
+        shijoat_points=100,
+        trial_given=False,
     )
     await session.commit()
     await message.answer("✅ Ma'lumotlaringiz tozalandi. /start bilan qayta boshlang.")
@@ -104,7 +108,7 @@ async def cmd_resetall(message: Message, session: AsyncSession):
         await message.answer("Ruxsat yo'q.")
         return
     from sqlalchemy import delete, update
-    from bot.database.models import UserProgress, Lesson as LessonModel, User
+    from bot.database.models import UserProgress, Lesson as LessonModel, User, SubscriptionTier
     await session.execute(delete(UserProgress))
     await session.execute(delete(LessonModel))
     await session.execute(
@@ -119,6 +123,10 @@ async def cmd_resetall(message: Message, session: AsyncSession):
             daily_lessons_done=0,
             referred_by=None,
             last_active_date=None,
+            subscription_tier=SubscriptionTier.FREE,
+            subscription_expires=None,
+            shijoat_points=100,
+            trial_given=False,
         )
     )
     await session.commit()
