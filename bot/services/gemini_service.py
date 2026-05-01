@@ -1,44 +1,44 @@
 """
-Gemini AI content generation — runs ONCE per vocabulary word, cached in DB.
-All users read from DB; no AI calls happen during lessons.
+Gemini AI content generation via REST API (aiohttp — no extra package needed).
+Runs ONCE per vocabulary word, cached in DB. Zero latency during lessons.
 """
 import asyncio
 import json
 import logging
 from typing import Optional
 
+import aiohttp
+
 logger = logging.getLogger(__name__)
 
-# Gemini RPM limit on free tier: 15 req/min → 4 second delay between calls
-_REQUEST_DELAY = 4.5
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    "gemini-1.5-flash:generateContent"
+)
+_REQUEST_DELAY = 4.5  # stay under 15 RPM free tier limit
 
 
-def _build_prompt(arabic_word: str, uzbek_translation: str, transliteration: str, level_id: int) -> str:
+def _build_prompt(arabic_word: str, uzbek: str, trans: str, level_id: int) -> str:
     if level_id <= 2:
-        complexity = "very simple — just THIS word used alone or with 1 known word like هذا/هي"
+        complexity = "very simple — 2-3 words, use هذا or هي + this word"
     elif level_id <= 4:
-        complexity = "simple — 2 to 4 words, subject + this word"
+        complexity = "simple — 3-5 words, subject + this word"
     elif level_id <= 6:
-        complexity = "moderate — 4 to 6 words, simple subject + verb + this word"
+        complexity = "moderate — 4-6 words, complete simple sentence"
     else:
-        complexity = "natural — 5 to 8 words, complete meaningful sentence"
+        complexity = "natural — 5-8 words, meaningful sentence"
 
-    return f"""You are an Arabic teacher creating exercises for Uzbek-speaking beginner students.
-
-Arabic word: {arabic_word}
-Uzbek meaning: {uzbek_translation}
-Pronunciation: {transliteration}
-Level: {level_id}/10 — complexity: {complexity}
-
-Create ONE example Arabic sentence that:
-- Uses this exact word (not a derivative)
-- Follows the complexity guideline above
-- Uses Modern Standard Arabic (Fusha)
-- Is grammatically correct with full diacritics (harakat)
-- Translates naturally into Uzbek
-
-Return ONLY valid JSON (no markdown, no explanation):
-{{"arabic": "الجملة هنا", "uzbek": "O'zbek tarjimasi"}}"""
+    return (
+        f"You are an Arabic teacher for Uzbek-speaking beginners.\n\n"
+        f"Arabic word: {arabic_word}\n"
+        f"Uzbek meaning: {uzbek}\n"
+        f"Pronunciation: {trans}\n"
+        f"Level {level_id}/10 — sentence complexity: {complexity}\n\n"
+        f"Write ONE example Arabic sentence using this exact word.\n"
+        f"Rules: Modern Standard Arabic, full diacritics, grammatically correct.\n\n"
+        f"Return ONLY valid JSON, no markdown:\n"
+        f'{{ "arabic": "الجملة هنا", "uzbek": "O\'zbek tarjimasi" }}'
+    )
 
 
 async def generate_example_sentence(
@@ -47,32 +47,49 @@ async def generate_example_sentence(
     transliteration: str,
     level_id: int,
 ) -> Optional[dict]:
-    """Call Gemini once for one word. Returns {arabic, uzbek} or None."""
     from bot.config import settings
     if not settings.GEMINI_API_KEY:
         return None
 
+    payload = {
+        "contents": [{"parts": [{"text": _build_prompt(
+            arabic_word, uzbek_translation, transliteration or "", level_id
+        )}]}],
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 200,
+        },
+    }
+
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        prompt = _build_prompt(arabic_word, uzbek_translation, transliteration or "", level_id)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                GEMINI_URL,
+                params={"key": settings.GEMINI_API_KEY},
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp:
+                if resp.status != 200:
+                    body = await resp.text()
+                    logger.error(f"Gemini HTTP {resp.status} for '{arabic_word}': {body[:300]}")
+                    return None
 
-        response = await asyncio.to_thread(model.generate_content, prompt)
-        raw = response.text.strip()
+                data = await resp.json()
+                raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
-        # Strip markdown code fences if present
-        if "```" in raw:
-            parts = raw.split("```")
-            raw = parts[1] if len(parts) > 1 else raw
-            if raw.startswith("json"):
-                raw = raw[4:].strip()
+                # Strip markdown fences if present
+                if "```" in raw:
+                    parts = raw.split("```")
+                    raw = parts[1].strip()
+                    if raw.startswith("json"):
+                        raw = raw[4:].strip()
 
-        data = json.loads(raw)
-        if isinstance(data, dict) and "arabic" in data and "uzbek" in data:
-            return {"arabic": data["arabic"].strip(), "uzbek": data["uzbek"].strip()}
+                result = json.loads(raw)
+                if "arabic" in result and "uzbek" in result:
+                    return {"arabic": result["arabic"].strip(), "uzbek": result["uzbek"].strip()}
+
     except Exception as e:
-        logger.error(f"Gemini failed for '{arabic_word}': {e}")
+        logger.error(f"Gemini request failed for '{arabic_word}': {e}")
     return None
 
 
@@ -82,25 +99,23 @@ async def bulk_generate_missing(
     admin_chat_id: int,
     level_filter: Optional[int] = None,
 ) -> None:
-    """
-    Background task: find all vocabulary words with no example sentence,
-    call Gemini for each, save to DB. Runs once; all users share the result.
-    """
+    """Find all words with no example sentence, call Gemini, save to DB."""
     from sqlalchemy import select, and_, update
     from bot.database.models import Vocabulary
 
     async with session_factory() as session:
-        q = select(Vocabulary).where(
-            and_(
+        q = (
+            select(Vocabulary)
+            .where(and_(
                 Vocabulary.is_active == True,
                 Vocabulary.example_sentence_arabic == None,
                 Vocabulary.category.notin_(["harf", "harakat"]),
-            )
-        ).order_by(Vocabulary.level_id, Vocabulary.topic_id)
+            ))
+            .order_by(Vocabulary.level_id, Vocabulary.topic_id)
+        )
         if level_filter:
             q = q.where(Vocabulary.level_id == level_filter)
-        result = await session.execute(q)
-        words = result.scalars().all()
+        words = (await session.execute(q)).scalars().all()
 
     if not words:
         try:
@@ -110,17 +125,17 @@ async def bulk_generate_missing(
         return
 
     total = len(words)
+    eta_min = int(total * _REQUEST_DELAY / 60)
     try:
         status_msg = await bot.send_message(
             admin_chat_id,
-            f"⏳ {total} ta so'z uchun jumlalar yaratilmoqda...\n(~{total * _REQUEST_DELAY / 60:.0f} daqiqa)"
+            f"⏳ {total} ta so'z uchun jumlalar yaratilmoqda (~{eta_min} daqiqa)..."
         )
         status_id = status_msg.message_id
     except Exception:
         status_id = None
 
-    done = 0
-    failed = 0
+    done = failed = 0
 
     for word in words:
         result = await generate_example_sentence(
@@ -144,7 +159,6 @@ async def bulk_generate_missing(
         else:
             failed += 1
 
-        # Update status every 10 words
         if status_id and (done + failed) % 10 == 0:
             try:
                 pct = int((done + failed) / total * 100)
@@ -158,7 +172,12 @@ async def bulk_generate_missing(
 
         await asyncio.sleep(_REQUEST_DELAY)
 
-    summary = f"✅ Yaratish yakunlandi!\n\n✅ Muvaffaqiyatli: {done}\n❌ Xatolik: {failed}\nJami: {total}"
+    summary = (
+        f"{'✅' if failed == 0 else '⚠️'} Yaratish yakunlandi!\n\n"
+        f"✅ Muvaffaqiyatli: {done}\n"
+        f"❌ Xatolik: {failed}\n"
+        f"Jami: {total}"
+    )
     try:
         if status_id:
             await bot.edit_message_text(summary, chat_id=admin_chat_id, message_id=status_id)
@@ -166,11 +185,10 @@ async def bulk_generate_missing(
             await bot.send_message(admin_chat_id, summary)
     except Exception:
         pass
-    logger.info(f"Gemini bulk generation done: {done}/{total} words.")
+    logger.info(f"Gemini bulk done: {done}/{total}")
 
 
 async def auto_generate_on_startup(session_factory, bot) -> None:
-    """Called at startup: if GEMINI_API_KEY set and words are missing, notify admin."""
     from bot.config import settings
     from bot.database.models import Vocabulary
     from sqlalchemy import select, and_, func
@@ -180,25 +198,25 @@ async def auto_generate_on_startup(session_factory, bot) -> None:
 
     async with session_factory() as session:
         result = await session.execute(
-            select(func.count(Vocabulary.word_id)).where(
-                and_(
-                    Vocabulary.is_active == True,
-                    Vocabulary.example_sentence_arabic == None,
-                    Vocabulary.category.notin_(["harf", "harakat"]),
-                )
-            )
+            select(func.count(Vocabulary.word_id)).where(and_(
+                Vocabulary.is_active == True,
+                Vocabulary.example_sentence_arabic == None,
+                Vocabulary.category.notin_(["harf", "harakat"]),
+            ))
         )
         missing = result.scalar() or 0
 
     if missing > 0:
-        logger.info(f"Auto-generating {missing} missing example sentences via Gemini...")
+        logger.info(f"Auto-generating {missing} example sentences via Gemini REST...")
         for admin_id in settings.ADMIN_IDS:
             try:
                 await bot.send_message(
                     admin_id,
-                    f"🤖 Gemini: {missing} ta so'z uchun misol jumlalar yaratish boshlandi.\n"
-                    f"Dars sifati yaxshilanadi. /genwords cancel uchun."
+                    f"🤖 Gemini: {missing} ta so'z uchun misol jumlalar yaratilmoqda.\n"
+                    f"Dars mashqlari boyib boradi!"
                 )
             except Exception:
                 pass
-        asyncio.create_task(bulk_generate_missing(session_factory, bot, settings.ADMIN_IDS[0]))
+        asyncio.create_task(
+            bulk_generate_missing(session_factory, bot, settings.ADMIN_IDS[0])
+        )
