@@ -159,6 +159,13 @@ async def on_startup(bot: Bot) -> None:
     # Notify admins about successful (re)deployment
     await _notify_admins_startup(bot)
 
+    # Auto-generate missing example sentences via Gemini (background, non-blocking)
+    try:
+        from bot.services.gemini_service import auto_generate_on_startup
+        asyncio.create_task(auto_generate_on_startup(async_session_maker, bot))
+    except Exception as e:
+        logger.warning(f"Gemini auto-generate skipped: {e}")
+
 
 async def on_shutdown(bot: Bot) -> None:
     if settings.WEBHOOK_URL:

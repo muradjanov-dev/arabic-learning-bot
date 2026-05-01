@@ -41,6 +41,39 @@ class AdminStates(StatesGroup):
     decline_reason = State()
 
 
+# ── Gemini content generation ─────────────────────────────────────────────────
+
+@router.message(Command("genwords"))
+async def cmd_genwords(message: Message):
+    """Admin: /genwords [level] — generate Gemini example sentences for empty vocabulary words."""
+    if not is_admin(message.from_user.id):
+        await message.answer("Ruxsat yo'q.")
+        return
+
+    from bot.config import settings
+    if not settings.GEMINI_API_KEY:
+        await message.answer(
+            "❌ GEMINI_API_KEY sozlanmagan.\n\n"
+            "1. https://aistudio.google.com/apikey dan bepul API key oling\n"
+            "2. Railway → Variables → GEMINI_API_KEY qo'shing"
+        )
+        return
+
+    # Optional level filter: /genwords 5
+    parts = message.text.split()
+    level_filter = None
+    if len(parts) > 1 and parts[1].isdigit():
+        level_filter = int(parts[1])
+
+    import asyncio
+    from bot.database.base import async_session_maker
+    from bot.services.gemini_service import bulk_generate_missing
+
+    label = f"{level_filter}-daraja uchun" if level_filter else "barcha darajalar uchun"
+    await message.answer(f"🤖 Gemini content generation boshlandi — {label}.\nAdmin panelga progress keladi.")
+    asyncio.create_task(bulk_generate_missing(async_session_maker, message.bot, message.chat.id, level_filter))
+
+
 # ── Entry ─────────────────────────────────────────────────────────────────────
 
 @router.message(Command("admin"))

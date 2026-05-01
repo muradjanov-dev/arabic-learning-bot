@@ -51,6 +51,9 @@ class Settings:
     # Trial
     TRIAL_DAYS: int = 2
 
+    # Gemini AI (for content generation — one-time, cached in DB)
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+
     # Payment card
     PAYMENT_CARD_NUMBER: str = "5614 6830 0539 3277"
     PAYMENT_CARD_HOLDER: str = "N. Murodjonov"
