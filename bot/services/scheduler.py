@@ -14,7 +14,7 @@ from bot.utils.messages import (
     REMINDER_MESSAGES, TRIAL_NOTIFICATION,
     SUBSCRIPTION_EXPIRED, SUBSCRIPTION_EXPIRES_SOON,
     DAILY_GOAL_PROGRESS, DAILY_GOAL_DONE,
-    LEADERBOARD_HEADER,
+    LEADERBOARD_HEADER, TUYAVOY_FACTS,
 )
 from bot.keyboards.main_kb import renew_subscription_kb, main_menu_kb
 
@@ -354,6 +354,52 @@ async def _send_period_leaderboard(
             logger.error(f"Period leaderboard broadcast failed: {e}")
 
 
+async def send_progress_comparison(session_factory: async_sessionmaker, bot: Bot) -> None:
+    """Tue & Fri — tell each user what % of all users they're ahead of."""
+    logger.info("Sending progress comparison notifications...")
+    async with session_factory() as session:
+        try:
+            from sqlalchemy import select
+            from bot.database.models import User
+
+            result = await session.execute(
+                select(User).where(
+                    User.is_registered == True,
+                    User.is_banned == False,
+                    User.is_notification_enabled == True,
+                )
+            )
+            users = result.scalars().all()
+            if len(users) < 2:
+                return
+
+            total = len(users)
+            all_xp = sorted(u.current_xp for u in users)
+
+            sent = 0
+            for user in users:
+                lower = sum(1 for xp in all_xp if xp < user.current_xp)
+                percentile = int(lower / total * 100)
+                if percentile < 10:
+                    continue  # skip bottom 10% — don't demotivate
+
+                fact = random.choice(TUYAVOY_FACTS)
+                msg = (
+                    f"🐪 Tuyavoy: Siz hozir barcha o'quvchilarning "
+                    f"<b>{percentile}%</b> dan oldingizda! 🏆\n\n"
+                    f"💡 {fact}"
+                )
+                try:
+                    await bot.send_message(user.user_id, msg)
+                    sent += 1
+                except Exception:
+                    pass
+
+            logger.info(f"Progress comparison sent to {sent}/{total} users.")
+        except Exception as e:
+            logger.error(f"Progress comparison failed: {e}")
+
+
 async def send_daily_leaderboard(session_factory: async_sessionmaker, bot: Bot) -> None:
     """23:55 — daily top 10 leaderboard."""
     now = datetime.utcnow()
@@ -439,6 +485,15 @@ def setup_scheduler(bot: Bot, session_factory: async_sessionmaker) -> AsyncIOSch
         CronTrigger(hour=20, minute=0, timezone="Asia/Tashkent"),
         args=[session_factory, bot],
         id="evening_encouragement",
+        replace_existing=True,
+    )
+
+    # Tue & Fri 18:00 — "you're ahead of X% of users"
+    scheduler.add_job(
+        send_progress_comparison,
+        CronTrigger(day_of_week="tue,fri", hour=18, minute=0, timezone="Asia/Tashkent"),
+        args=[session_factory, bot],
+        id="progress_comparison",
         replace_existing=True,
     )
 

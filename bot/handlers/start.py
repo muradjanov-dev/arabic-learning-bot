@@ -351,18 +351,10 @@ async def kb_roadmap(message: Message, user, session: AsyncSession):
 
 @router.message(F.text == KB_LEADERBOARD)
 async def kb_leaderboard(message: Message, session: AsyncSession):
-    from sqlalchemy import select
-    from bot.database.models import User
-    result = await session.execute(
-        select(User).where(User.is_registered == True).order_by(User.current_xp.desc()).limit(10)
-    )
-    users = result.scalars().all()
-    medals = ["🥇", "🥈", "🥉"] + ["🏅"] * 7
-    lines = ["🏆 <b>Top 10 Reyting</b>\n"]
-    for i, u in enumerate(users):
-        name = u.full_name or "Noma'lum"
-        lines.append(f"{medals[i]} {name} — {u.current_xp} 💎  🔥{u.streak_days}")
-    await message.answer("\n".join(lines) if len(lines) > 1 else "Hozircha reyting yo'q.", reply_markup=back_to_menu_kb())
+    from bot.handlers.profile import _build_leaderboard_text
+    from bot.keyboards.main_kb import leaderboard_kb
+    text = await _build_leaderboard_text(session, "weekly")
+    await message.answer(text, reply_markup=leaderboard_kb("weekly"))
 
 
 @router.message(F.text == KB_PREMIUM)
