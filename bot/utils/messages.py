@@ -64,30 +64,14 @@ MODULE_UP = (
 )
 
 # Question templates
-QUESTION_HEADER = "📝 Savol {idx}/{total}  |  💎 +{olmos} Olmos"
-QUESTION_HEADER_NEW = "📝 Savol {idx}/{total}  |  💎 +{olmos} Olmos  |  🆕 YANGI SO'Z"
-NEW_WORD_INTRO = (
-    "📚 <b>Yangi so'z:</b>\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-    "<b>{arabic}</b>\n"
-    "<i>{uzbek}</i>\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-)
-QUESTION_VISUAL = (
-    "So'zning o'zbek ma'nosini toping:\n\n"
-    "┌─────────────────────┐\n"
-    "│  <b>{arabic}</b>\n"
-    "└─────────────────────┘"
-)
-QUESTION_AUDIO = "🔊 Audioni tinglang va to'g'ri tarjimani tanlang:"
-QUESTION_JUMBLED = (
-    "Quyidagi jumlani arabchaga tarjima qiling:\n\n"
-    "<b>{uzbek}</b>\n\n"
-    "👇 So'zlarni to'g'ri tartibda bosing:"
-)
-
-JUMBLED_SELECTED = "━━━━━━━━━━━━━━\n👉 <b>Javobingiz:</b>\n📝 <code>{words}</code>\n━━━━━━━━━━━━━━"
-JUMBLED_EMPTY = "━━━━━━━━━━━━━━\n👉 <b>Javobingiz:</b>\n<i>(Quyidan so'zlarni tanlang)</i>\n━━━━━━━━━━━━━━"
+QUESTION_HEADER = "📝 {idx}/{total}  |  💎 +{olmos}"
+QUESTION_HEADER_NEW = "📝 {idx}/{total}  |  💎 +{olmos}  |  🆕"
+NEW_WORD_INTRO = "✨ <b>{arabic}</b>  —  {uzbek}\n"
+QUESTION_VISUAL = "Ma'nosini toping:\n\n<b>{arabic}</b>"
+QUESTION_AUDIO = "🔊 Tinglang va tanlang:"
+QUESTION_JUMBLED = "↩️ <b>{uzbek}</b>"
+JUMBLED_SELECTED = "📝 <code>{words}</code>"
+JUMBLED_EMPTY = "📝 <i>so'zlarni bosing...</i>"
 
 CORRECT_MOTIVATIONS = [
     "Zo'r! 🎉", "Ajoyib! 🌟", "Bravo! 💪", "Mukammal! ✨",
