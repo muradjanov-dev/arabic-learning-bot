@@ -10,31 +10,34 @@ from bot.database.models import Vocabulary
 
 logger = logging.getLogger(__name__)
 
-# Best Arabic neural voice via edge-tts (Microsoft)
-ARABIC_VOICE = "ar-SA-ZariyahNeural"
+# HamedNeural is optimized for MSA with full i'rab (case endings/tanwin)
+ARABIC_VOICE = "ar-SA-HamedNeural"
+ARABIC_VOICE_FALLBACK = "ar-SA-ZariyahNeural"
 
 
 async def generate_arabic_audio(text: str) -> Optional[io.BytesIO]:
-    """Generate Arabic TTS audio using edge-tts (high quality). Falls back to gTTS."""
-    try:
-        import edge_tts
-        communicate = edge_tts.Communicate(text, voice=ARABIC_VOICE)
-        buf = io.BytesIO()
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                buf.write(chunk["data"])
-        if buf.tell() > 0:
-            buf.seek(0)
-            return buf
-    except Exception as e:
-        logger.warning(f"edge-tts failed for '{text}': {e}, falling back to gTTS")
+    """Generate Arabic TTS with full diacritics/tanwin endings (MSA pronunciation)."""
+    import edge_tts
+    for voice in (ARABIC_VOICE, ARABIC_VOICE_FALLBACK):
+        try:
+            # rate="-15%" ensures word-final case endings (tanwin) are clearly audible
+            communicate = edge_tts.Communicate(text, voice=voice, rate="-15%")
+            buf = io.BytesIO()
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    buf.write(chunk["data"])
+            if buf.tell() > 0:
+                buf.seek(0)
+                return buf
+        except Exception as e:
+            logger.warning(f"edge-tts '{voice}' failed for '{text}': {e}")
 
-    # Fallback: gTTS
+    # Fallback: gTTS (slow=True for clearer pronunciation)
     def _gtts() -> Optional[io.BytesIO]:
         try:
             from gtts import gTTS
             buf = io.BytesIO()
-            tts = gTTS(text=text, lang="ar", slow=False)
+            tts = gTTS(text=text, lang="ar", slow=True)
             tts.write_to_fp(buf)
             buf.seek(0)
             return buf

@@ -29,8 +29,8 @@ async def build_lesson_questions(
     if not topic_words:
         return []
 
-    # ── Step 2: level 2+ — use only soz words (skip letter-only pools) ────────
-    if level_id >= 2:
+    # ── Step 2: level 3+ — use only soz words (letters taught in modules 1-2 only)
+    if level_id >= 3:
         soz_words = [w for w in topic_words if (w.category or "") not in LETTER_CATEGORIES]
         if soz_words:
             topic_words = soz_words
@@ -62,8 +62,8 @@ async def build_lesson_questions(
             ~Vocabulary.word_id.in_(topic_ids),
         ))
     )
-    # Level 2+: only review soz words
-    if level_id >= 2:
+    # Level 3+: only review soz words (letters only appear in modules 1-2)
+    if level_id >= 3:
         review_q = review_q.where(~Vocabulary.category.in_(list(LETTER_CATEGORIES)))
 
     review_q = review_q.order_by(UserProgress.next_review_date.asc()).limit(REVIEW_PER_LESSON)
@@ -90,7 +90,7 @@ async def build_lesson_questions(
             Vocabulary.level_id <= level_id,
             ~Vocabulary.word_id.in_(selected_ids),
         ))
-        if level_id >= 2:
+        if level_id >= 3:
             fallback_q = fallback_q.where(~Vocabulary.category.in_(list(LETTER_CATEGORIES)))
         fallback_q = fallback_q.order_by(func.random()).limit(needed)
         combined += list((await session.execute(fallback_q)).scalars().all())
@@ -160,14 +160,14 @@ async def check_topic_complete(
     level_id: int,
     topic_id: int,
 ) -> bool:
-    """True when topic is done. Level 2+: letter-only topics are auto-skipped."""
+    """True when topic is done. Level 3+: letter-only topics are auto-skipped."""
     vocab_repo = VocabularyRepository(session)
     words = await vocab_repo.get_words_for_topic(level_id, topic_id)
     if not words:
         return True
 
-    # Level 2+: auto-complete topics that contain only letters/harakats
-    if level_id >= 2:
+    # Level 3+: auto-complete topics that contain only letters/harakats
+    if level_id >= 3:
         non_letter = [w for w in words if (w.category or "") not in LETTER_CATEGORIES]
         if not non_letter:
             return True  # skip letter-only topic silently

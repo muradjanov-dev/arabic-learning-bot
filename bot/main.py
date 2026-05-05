@@ -47,14 +47,21 @@ async def _notify_admins_startup(bot: Bot) -> None:
     commit = os.getenv("RAILWAY_GIT_COMMIT_SHA", "unknown")[:7]
     env = os.getenv("RAILWAY_ENVIRONMENT_NAME", "local")
     mode = "Webhook" if settings.WEBHOOK_URL else "Polling"
+    from scripts.seed_data import VOCABULARY
+    word_count = len(VOCABULARY)
     text = (
-        "🚀 <b>Bot ishga tushdi!</b>\n\n"
+        "🚀 <b>Bot yangilandi va ishga tushdi!</b>\n\n"
         f"🕐 Vaqt: <code>{datetime.utcnow().strftime('%d.%m.%Y %H:%M')} UTC</code>\n"
         f"🌿 Muhit: <code>{env}</code>\n"
         f"📦 Deploy: <code>{deploy_id}</code>\n"
         f"🔖 Commit: <code>{commit}</code>\n"
         f"🔄 Rejim: <code>{mode}</code>\n\n"
-        "Yangilanish muvaffaqiyatli o'rnatildi. ✅"
+        "<b>📋 Yangilanishlar:</b>\n"
+        "• 🔊 TTS: <code>ar-SA-HamedNeural</code> ovozi (to'liq tanvin: valadUN)\n"
+        "• 📚 Har modul ≥5 mavzu — barcha 10 modul kengaytirildi\n"
+        "• 🔤 Harflar faqat 1-2 modulda o'rgatiladi\n"
+        f"• 📖 Lug'at: <code>{word_count}</code> so'z (avto-yangilanadi)\n\n"
+        "✅ Muvaffaqiyatli o'rnatildi."
     )
     for admin_id in settings.ADMIN_IDS:
         try:
