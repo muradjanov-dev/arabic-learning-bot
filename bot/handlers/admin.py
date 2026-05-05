@@ -101,6 +101,23 @@ async def admin_main(callback: CallbackQuery, state: FSMContext, session: AsyncS
 
 # ── Reset commands ───────────────────────────────────────────────────────────
 
+@router.message(Command("resetaudio"))
+async def cmd_resetaudio(message: Message, session: AsyncSession):
+    """Admin only: clear audio cache so lessons regenerate TTS with sentence audio."""
+    if not is_admin(message.from_user.id):
+        await message.answer("Ruxsat yo'q.")
+        return
+    from sqlalchemy import update
+    from bot.database.models import Vocabulary
+    await session.execute(update(Vocabulary).values(telegram_audio_file_id=None))
+    await session.commit()
+    await message.answer(
+        "✅ Audio kesh tozalandi.\n\n"
+        "Keyingi darslarda so'zlar misol jumlalar ovozi bilan qayta yaratiladi.\n"
+        "Masalan: <code>baytun</code>, <code>kitaabun</code> — to'liq talaffuz."
+    )
+
+
 @router.message(Command("resetme"))
 async def cmd_resetme(message: Message, session: AsyncSession):
     """Admin only: wipe your own progress + audio cache, re-register from scratch."""

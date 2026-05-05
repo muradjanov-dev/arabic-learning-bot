@@ -157,6 +157,7 @@ async def bulk_generate_missing(
                     .values(
                         example_sentence_arabic=result["arabic"],
                         example_sentence_uzbek=result["uzbek"],
+                        telegram_audio_file_id=None,  # regenerate with sentence audio
                     )
                 )
                 await session.commit()

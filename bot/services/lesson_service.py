@@ -135,13 +135,21 @@ async def build_lesson_questions(
             jumbled_words = word.example_sentence_arabic.split()
             random.shuffle(jumbled_words)
 
+        # Use example sentence for TTS when available: word appears mid-sentence
+        # so tanwin/case endings are spoken aloud (not dropped in pausal waqf form).
+        # For letters/harakatlar, keep transliteration-based tts_text.
+        if category not in LETTER_CATEGORIES and word.example_sentence_arabic:
+            audio_tts_text = word.example_sentence_arabic
+        else:
+            audio_tts_text = tts_text
+
         questions.append({
             "word_id": word.word_id,
             "type": qtype,
             "arabic_word": word.arabic_word,
             "uzbek_translation": word.uzbek_translation,
             "transliteration": word.transliteration or "",
-            "tts_text": tts_text,
+            "tts_text": audio_tts_text,
             "is_new": is_new,
             "options": options,
             "correct_index": correct_index,
