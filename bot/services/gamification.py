@@ -20,47 +20,82 @@ LEVEL_NAMES = [
 
 LEVEL_TITLES = [
     "",
-    "Alifbo (1) — ا ب ت ث ج ح خ",
-    "Alifbo (2) — د ذ ر ز س ش ص",
-    "Alifbo (3) — ض ط ظ ع غ ف ق",
-    "Alifbo (4) — ك ل م ن و ه ي",
-    "Harakatlar — بَ بِ بُ بْ بً بٌ",
-    "Mabdaul Qiroat (1) — Oddiy so'zlar",
-    "Mabdaul Qiroat (2) — Salomlashish",
-    "Shifohiya — Olmoshlar",
-    "Shifohiya — Sifatlar",
-    "Shifohiya — Fe'llar",
+    "Alifbo (1) — ا ب ت ث ج ح خ + Birinchi so'zlar",
+    "Alifbo (2) — د-ي barcha harflar + Lug'at",
+    "Lug'at (1) — Maktab, Uy, Tabiat",
+    "Grammatika — Harakatlar va Ta'rif ال",
+    "Lug'at (2) — Ta'om, Transport, Shahar",
+    "Muloqot — Salomlashish va Oila",
+    "Grammatika — Olmosh, Savol, Ravish",
+    "Sifatlar — Tavsif va His-tuyg'ular",
+    "Fe'llar (1) — Harakat, Holat, Amr",
+    "Fe'llar (2) — Predlog, Zarf, Muloqot",
 ]
 
 TOPIC_NAMES = {
+    # Module 1
     (1, 1): "Harflar: ا ب ت ث ج ح خ",
     (1, 2): "Birinchi so'zlar",
     (1, 3): "Jism a'zolari",
     (1, 4): "Ranglar",
     (1, 5): "Hayvonlar",
     (1, 6): "Raqamlar 1-7",
+    # Module 2
     (2, 1): "Harflar: د ذ ر ز س ش ص",
     (2, 2): "Harflar: ض ط ظ ع غ ف ق",
     (2, 3): "Tabiat so'zlari",
     (2, 4): "Odamlar va narsalar",
-    (3, 1): "Harflar: ك ل م ن و ه ي",
-    (3, 2): "Maxsus belgilar",
-    (3, 3): "Maktab",
-    (3, 4): "Uy",
-    (3, 5): "Tabiat va ob-havo",
+    (2, 5): "Raqamlar 8-100",
+    (2, 6): "Harflar: ك ل م ن و ه ي",
+    (2, 7): "Maxsus harflar va hamzalar",
+    # Module 3 — vocabulary only, no letters
+    (3, 1): "Maktab so'zlari",
+    (3, 2): "Uy so'zlari",
+    (3, 3): "Tabiat va ob-havo",
+    (3, 4): "Mevalar va sabzavotlar",
+    (3, 5): "Kundalik narsalar",
+    # Module 4
     (4, 1): "Harakatlar",
+    (4, 2): "Ta'rif bilan so'zlar",
+    (4, 3): "Muzakkar va Muannath",
+    (4, 4): "Ikkilik shakli",
+    (4, 5): "Ko'plik shakllari",
+    # Module 5
     (5, 1): "Oddiy so'zlar",
     (5, 2): "Tabiat",
+    (5, 3): "Ta'om va ichimlik",
+    (5, 4): "Transport va yo'l",
+    (5, 5): "Shahar va joylar",
+    # Module 6
     (6, 1): "Salomlashish",
     (6, 2): "Oila",
+    (6, 3): "Vaqt iboralari",
+    (6, 4): "Bozor va xarid",
+    (6, 5): "Sog'liq",
+    # Module 7
     (7, 1): "Olmoshlar",
-    (7, 2): "Ko'rsatish olmoshlari",
+    (7, 2): "Savol so'zlari",
+    (7, 3): "Millatlar",
+    (7, 4): "Ravishlar",
+    (7, 5): "Bog'lovchilar",
+    # Module 8
     (8, 1): "Sifatlar",
     (8, 2): "Zid sifatlar",
+    (8, 3): "Taqqoslash sifatlari",
+    (8, 4): "His-tuyg'ular",
+    (8, 5): "Muhim sifatlar",
+    # Module 9
     (9, 1): "Fe'llar (harakatlar)",
     (9, 2): "Fe'llar (holat)",
+    (9, 3): "Muzori' fe'llari",
+    (9, 4): "Amr fe'llari",
+    (9, 5): "Kundalik hayot fe'llari",
+    # Module 10
     (10, 1): "Fe'llar (his-tuyg'u)",
     (10, 2): "Fe'llar (aqliy)",
+    (10, 3): "Harf jarr (predloglar)",
+    (10, 4): "Makonga oid zarflar",
+    (10, 5): "Aloqa fe'llari 2",
 }
 
 ACHIEVEMENTS = {

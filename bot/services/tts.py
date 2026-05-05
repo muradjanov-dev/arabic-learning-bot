@@ -15,8 +15,22 @@ ARABIC_VOICE = "ar-SA-HamedNeural"
 ARABIC_VOICE_FALLBACK = "ar-SA-ZariyahNeural"
 
 
+def _expand_tanwin(text: str) -> str:
+    """Convert tanwin diacritics to explicit n-endings so TTS reads them aloud.
+
+    Arabic TTS applies pausal (waqf) pronunciation on isolated words, dropping
+    case endings: قَمَرٌ → "qamar" instead of "qamarun". Converting tanwin to
+    explicit damma/fatha/kasra + nun + sukun forces the TTS to read the n.
+    """
+    text = text.replace('ٌ', 'ُنْ')  # ٌ → ُنْ
+    text = text.replace('ً', 'َنْ')  # ً → َنْ
+    text = text.replace('ٍ', 'ِنْ')  # ٍ → ِنْ
+    return text
+
+
 async def generate_arabic_audio(text: str) -> Optional[io.BytesIO]:
     """Generate Arabic TTS with full diacritics/tanwin endings (MSA pronunciation)."""
+    text = _expand_tanwin(text)
     import edge_tts
     for voice in (ARABIC_VOICE, ARABIC_VOICE_FALLBACK):
         try:

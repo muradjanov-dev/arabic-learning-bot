@@ -94,12 +94,8 @@ async def profile_view(callback: CallbackQuery, user, session: AsyncSession):
 
 # ── Roadmap ───────────────────────────────────────────────────────────────────
 
-@router.callback_query(F.data == "menu:roadmap")
-async def roadmap_view(callback: CallbackQuery, user, session: AsyncSession):
-    if not user.is_registered:
-        await callback.answer("Avval ro'yxatdan o'ting!", show_alert=True)
-        return
-
+async def build_roadmap_text(session: AsyncSession, user) -> str:
+    """Shared roadmap builder used by both reply-keyboard and inline handlers."""
     from sqlalchemy import select, and_, func as sqlfunc
     from bot.database.models import Vocabulary, UserProgress
 
@@ -120,21 +116,16 @@ async def roadmap_view(callback: CallbackQuery, user, session: AsyncSession):
         if n < current:
             text += ROADMAP_LEVEL_DONE.format(n=n, title=title, bar=bar, pct=pct)
         elif n == current:
-            # Show level header
             text += ROADMAP_LEVEL_CURRENT.format(n=n, title=title, bar=bar, pct=pct)
 
-            # Get all topics in this level
+            # Expand current level: show per-topic progress
             result = await session.execute(
-                select(sqlfunc.max(Vocabulary.topic_id)).where(
-                    Vocabulary.level_id == n
-                )
+                select(sqlfunc.max(Vocabulary.topic_id)).where(Vocabulary.level_id == n)
             )
             max_topic = result.scalar() or 1
 
             for t in range(1, max_topic + 1):
                 topic_name = TOPIC_NAMES.get((n, t), f"Mavzu {t}")
-
-                # Get mastery for this topic
                 words_r = await session.execute(
                     select(Vocabulary.word_id).where(
                         and_(Vocabulary.level_id == n, Vocabulary.topic_id == t)
@@ -158,18 +149,14 @@ async def roadmap_view(callback: CallbackQuery, user, session: AsyncSession):
                 topic_bar = _bar(topic_pct, width=6)
 
                 if t < current_topic:
-                    icon = "✅"
-                    marker = ""
                     text += ROADMAP_TOPIC_ROW.format(
-                        icon=icon, n=t, name=topic_name,
-                        bar=topic_bar, pct=topic_pct, marker=marker,
+                        icon="✅", n=t, name=topic_name,
+                        bar=topic_bar, pct=topic_pct, marker="",
                     )
                 elif t == current_topic:
-                    icon = "🎯"
-                    marker = "← Biz shu yerdamiz"
                     text += ROADMAP_TOPIC_ROW.format(
-                        icon=icon, n=t, name=topic_name,
-                        bar=topic_bar, pct=topic_pct, marker=marker,
+                        icon="🎯", n=t, name=topic_name,
+                        bar=topic_bar, pct=topic_pct, marker="← Biz shu yerdamiz",
                     )
                 else:
                     text += ROADMAP_TOPIC_LOCKED.format(n=t, name=topic_name)
@@ -180,6 +167,15 @@ async def roadmap_view(callback: CallbackQuery, user, session: AsyncSession):
         else:
             text += ROADMAP_LEVEL_LOCKED.format(n=n, title=title, prev=n - 1)
 
+    return text
+
+
+@router.callback_query(F.data == "menu:roadmap")
+async def roadmap_view(callback: CallbackQuery, user, session: AsyncSession):
+    if not user.is_registered:
+        await callback.answer("Avval ro'yxatdan o'ting!", show_alert=True)
+        return
+    text = await build_roadmap_text(session, user)
     await callback.message.edit_text(text, reply_markup=roadmap_kb())
     await callback.answer()
 
