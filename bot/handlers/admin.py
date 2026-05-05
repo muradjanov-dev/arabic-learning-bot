@@ -107,14 +107,15 @@ async def cmd_resetaudio(message: Message, session: AsyncSession):
     if not is_admin(message.from_user.id):
         await message.answer("Ruxsat yo'q.")
         return
-    from sqlalchemy import update
+    from sqlalchemy import update, select, func
     from bot.database.models import Vocabulary
-    await session.execute(update(Vocabulary).values(telegram_audio_file_id=None))
+    result = await session.execute(update(Vocabulary).values(telegram_audio_file_id=None))
+    cleared = result.rowcount
     await session.commit()
     await message.answer(
-        "✅ Audio kesh tozalandi.\n\n"
-        "Keyingi darslarda so'zlar misol jumlalar ovozi bilan qayta yaratiladi.\n"
-        "Masalan: <code>baytun</code>, <code>kitaabun</code> — to'liq talaffuz."
+        f"✅ Audio kesh tozalandi: <b>{cleared} ta so'z</b>.\n\n"
+        "Keyingi darslarda yangi ovoz qayta yaratiladi.",
+        parse_mode="HTML",
     )
 
 
