@@ -15,22 +15,29 @@ ARABIC_VOICE = "ar-SA-HamedNeural"
 ARABIC_VOICE_FALLBACK = "ar-SA-ZariyahNeural"
 
 
-def _expand_tanwin(text: str) -> str:
-    """Convert tanwin diacritics to explicit n-endings so TTS reads them aloud.
+def _prepare_arabic_tts(text: str) -> str:
+    """Prepare Arabic text so TTS speaks full case endings (baytun, not bayt).
 
-    Arabic TTS applies pausal (waqf) pronunciation on isolated words, dropping
-    case endings: قَمَرٌ → "qamar" instead of "qamarun". Converting tanwin to
-    explicit damma/fatha/kasra + nun + sukun forces the TTS to read the n.
+    Two-step fix for Azure Neural TTS pausal (waqf) pronunciation:
+    1. Expand tanwin diacritics to explicit n-letters (ٌ → ُنْ) as a hint.
+    2. Append وَ so the target word is never utterance-final — neural TTS only
+       drops case endings on the last token; وَ ("wa") becomes that last token
+       instead, and all preceding words are read in connected-speech form.
     """
-    text = text.replace('ٌ', 'ُنْ')  # ٌ → ُنْ
-    text = text.replace('ً', 'َنْ')  # ً → َنْ
-    text = text.replace('ٍ', 'ِنْ')  # ٍ → ِنْ
+    # Step 1: tanwin → explicit n
+    text = text.replace('ٌ', 'ُنْ')
+    text = text.replace('ً', 'َنْ')
+    text = text.replace('ٍ', 'ِنْ')
+    # Step 2: append وَ to prevent pausal form on the last real word
+    text = text.strip()
+    if not text.endswith('وَ'):
+        text += ' وَ'
     return text
 
 
 async def generate_arabic_audio(text: str) -> Optional[io.BytesIO]:
-    """Generate Arabic TTS with full diacritics/tanwin endings (MSA pronunciation)."""
-    text = _expand_tanwin(text)
+    """Generate Arabic TTS with full case endings (MSA connected-speech form)."""
+    text = _prepare_arabic_tts(text)
     import edge_tts
     for voice in (ARABIC_VOICE, ARABIC_VOICE_FALLBACK):
         try:
