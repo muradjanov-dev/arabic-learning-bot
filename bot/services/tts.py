@@ -35,9 +35,14 @@ def _prepare_arabic_tts(text: str) -> str:
     return text
 
 
+def _is_arabic_script(text: str) -> bool:
+    return any('؀' <= c <= 'ۿ' for c in text)
+
+
 async def generate_arabic_audio(text: str) -> Optional[io.BytesIO]:
     """Generate Arabic TTS with full case endings (MSA connected-speech form)."""
-    text = _prepare_arabic_tts(text)
+    if _is_arabic_script(text):
+        text = _prepare_arabic_tts(text)
     import edge_tts
     for voice in (ARABIC_VOICE, ARABIC_VOICE_FALLBACK):
         try:
