@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
-    "gemini-1.5-flash:generateContent"
+    "gemini-2.0-flash:generateContent"
 )
 _REQUEST_DELAY = 4.5  # stay under 15 RPM free tier limit
 
@@ -46,10 +46,11 @@ async def generate_example_sentence(
     uzbek_translation: str,
     transliteration: str,
     level_id: int,
-) -> Optional[dict]:
+) -> tuple[Optional[dict], Optional[str]]:
+    """Returns (result, error_message). result is None on failure."""
     from bot.config import settings
     if not settings.GEMINI_API_KEY:
-        return None
+        return None, "GEMINI_API_KEY topilmadi"
 
     payload = {
         "contents": [{"parts": [{"text": _build_prompt(
@@ -71,8 +72,9 @@ async def generate_example_sentence(
             ) as resp:
                 if resp.status != 200:
                     body = await resp.text()
-                    logger.error(f"Gemini HTTP {resp.status} for '{arabic_word}': {body[:300]}")
-                    return None
+                    err = f"HTTP {resp.status}: {body[:200]}"
+                    logger.error(f"Gemini error for '{arabic_word}': {err}")
+                    return None, err
 
                 data = await resp.json()
                 raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
@@ -86,11 +88,13 @@ async def generate_example_sentence(
 
                 result = json.loads(raw)
                 if "arabic" in result and "uzbek" in result:
-                    return {"arabic": result["arabic"].strip(), "uzbek": result["uzbek"].strip()}
+                    return {"arabic": result["arabic"].strip(), "uzbek": result["uzbek"].strip()}, None
+
+                return None, f"Noto'g'ri JSON: {raw[:100]}"
 
     except Exception as e:
         logger.error(f"Gemini request failed for '{arabic_word}': {e}")
-    return None
+        return None, str(e)[:150]
 
 
 async def bulk_generate_missing(
@@ -136,9 +140,10 @@ async def bulk_generate_missing(
         status_id = None
 
     done = failed = 0
+    first_error: Optional[str] = None
 
     for word in words:
-        result = await generate_example_sentence(
+        result, err = await generate_example_sentence(
             word.arabic_word,
             word.uzbek_translation,
             word.transliteration or "",
@@ -157,6 +162,8 @@ async def bulk_generate_missing(
                 await session.commit()
             done += 1
         else:
+            if first_error is None and err:
+                first_error = err
             failed += 1
 
         if status_id and (done + failed) % 10 == 0:
@@ -178,11 +185,13 @@ async def bulk_generate_missing(
         f"❌ Xatolik: {failed}\n"
         f"Jami: {total}"
     )
+    if first_error:
+        summary += f"\n\n🔴 Birinchi xato:\n<code>{first_error}</code>"
     try:
         if status_id:
-            await bot.edit_message_text(summary, chat_id=admin_chat_id, message_id=status_id)
+            await bot.edit_message_text(summary, chat_id=admin_chat_id, message_id=status_id, parse_mode="HTML")
         else:
-            await bot.send_message(admin_chat_id, summary)
+            await bot.send_message(admin_chat_id, summary, parse_mode="HTML")
     except Exception:
         pass
     logger.info(f"Gemini bulk done: {done}/{total}")
