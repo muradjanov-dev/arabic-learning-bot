@@ -16,23 +16,11 @@ ARABIC_VOICE_FALLBACK = "ar-SA-ZariyahNeural"
 
 
 def _prepare_arabic_tts(text: str) -> str:
-    """Prepare Arabic text so TTS speaks full case endings (baytun, not bayt).
-
-    Two-step fix for Azure Neural TTS pausal (waqf) pronunciation:
-    1. Expand tanwin diacritics to explicit n-letters (ٌ → ُنْ) as a hint.
-    2. Append وَ so the target word is never utterance-final — neural TTS only
-       drops case endings on the last token; وَ ("wa") becomes that last token
-       instead, and all preceding words are read in connected-speech form.
-    """
-    # Step 1: tanwin → explicit n
+    """Expand tanwin diacritics to explicit n-letters so TTS pronounces them."""
     text = text.replace('ٌ', 'ُنْ')
     text = text.replace('ً', 'َنْ')
     text = text.replace('ٍ', 'ِنْ')
-    # Step 2: append وَ to prevent pausal form on the last real word
-    text = text.strip()
-    if not text.endswith('وَ'):
-        text += ' وَ'
-    return text
+    return text.strip()
 
 
 def _is_arabic_script(text: str) -> bool:
