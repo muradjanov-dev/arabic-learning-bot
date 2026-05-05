@@ -135,6 +135,8 @@ SUBSCRIPTION_INFO = (
 
 PAYMENT_INSTRUCTIONS = (
     "<b>{tier_name} Obuna</b>\n\n"
+    "⚡ Kunlik Shijoat: <b>{shijoat:,} ta</b> (bepulda 100 ta)\n"
+    "📚 Darslar: <b>{lessons} ta/kun</b> (bepulda 10 ta)\n\n"
     "💰 Narxi: <b>{price}</b>\n\n"
     "To'lov qilish uchun:\n"
     "🏦 Karta raqami: <code>{card}</code>\n"

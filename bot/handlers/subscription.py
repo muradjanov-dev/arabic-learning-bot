@@ -69,6 +69,8 @@ async def subscription_select(callback: CallbackQuery):
         price=meta["display"],
         card=settings.PAYMENT_CARD_NUMBER,
         holder=settings.PAYMENT_CARD_HOLDER,
+        shijoat=meta["shijoat"],
+        lessons=meta["shijoat"] // 10,
     )
     await callback.message.edit_text(text, reply_markup=payment_send_receipt_kb(tier_key))
     await callback.answer()
