@@ -103,15 +103,16 @@ async def admin_main(callback: CallbackQuery, state: FSMContext, session: AsyncS
 
 @router.message(Command("resetme"))
 async def cmd_resetme(message: Message, session: AsyncSession):
-    """Admin only: wipe your own progress and re-register from scratch."""
+    """Admin only: wipe your own progress + audio cache, re-register from scratch."""
     if not is_admin(message.from_user.id):
         await message.answer("Ruxsat yo'q.")
         return
-    from sqlalchemy import delete
-    from bot.database.models import UserProgress, Lesson as LessonModel, SubscriptionTier
+    from sqlalchemy import delete, update
+    from bot.database.models import UserProgress, Lesson as LessonModel, Vocabulary, SubscriptionTier
     uid = message.from_user.id
     await session.execute(delete(UserProgress).where(UserProgress.user_id == uid))
     await session.execute(delete(LessonModel).where(LessonModel.user_id == uid))
+    await session.execute(update(Vocabulary).values(telegram_audio_file_id=None))
     repo = UserRepository(session)
     await repo.update(
         uid,
@@ -131,17 +132,17 @@ async def cmd_resetme(message: Message, session: AsyncSession):
         trial_given=False,
     )
     await session.commit()
-    await message.answer("✅ Ma'lumotlaringiz tozalandi. /start bilan qayta boshlang.")
+    await message.answer("✅ Progress va audio kesh tozalandi. /start bilan qayta boshlang.")
 
 
 @router.message(Command("resetall"))
 async def cmd_resetall(message: Message, session: AsyncSession):
-    """Admin only: wipe ALL users' progress (keeps accounts, re-registration required)."""
+    """Admin only: wipe ALL users' progress + audio cache (keeps accounts)."""
     if not is_admin(message.from_user.id):
         await message.answer("Ruxsat yo'q.")
         return
     from sqlalchemy import delete, update
-    from bot.database.models import UserProgress, Lesson as LessonModel, User, SubscriptionTier
+    from bot.database.models import UserProgress, Lesson as LessonModel, User, Vocabulary, SubscriptionTier
     await session.execute(delete(UserProgress))
     await session.execute(delete(LessonModel))
     await session.execute(
@@ -162,8 +163,15 @@ async def cmd_resetall(message: Message, session: AsyncSession):
             trial_given=False,
         )
     )
+    # Clear cached Telegram audio file IDs so new voice (HamedNeural) is used
+    await session.execute(update(Vocabulary).values(telegram_audio_file_id=None))
     await session.commit()
-    await message.answer(f"✅ Barcha foydalanuvchilar qayta boshlash uchun tozalandi.")
+    await message.answer(
+        "✅ Hammasi tozalandi:\n"
+        "• Barcha foydalanuvchilar progressi\n"
+        "• Darslar tarixi\n"
+        "• Audio kesh (yangi ovoz bilan qayta yaratiladi)"
+    )
 
 
 # ── Statistics ────────────────────────────────────────────────────────────────
